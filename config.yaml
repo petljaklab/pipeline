@@ -1,0 +1,19 @@
+REFERENCE_GENOME_NAME: "hg19"
+ALIGN_THREADS: 16
+
+
+## Container paths & versions
+MUTECT_VERSION: "4.4.0.0"
+BWAMEM2_VERSION: "2.2.1"
+SRATOOLS_VERSION: "3.0.1"
+
+## Analysis paths
+TEMP_DIR: "/gpfs/scratch/culibl01/tmp/"
+SCRATCH_DIR: "/gpfs/scratch/culibl01/projects/"
+PROD_DIR: "/gpfs/data/petljaklab/data/projects/"
+
+## Resource paths
+# Probably add these as a module sometime?
+ALN_REFERENCES:
+  hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/bwa2/hg19.fa"
+  hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa2/hg38.fa"
