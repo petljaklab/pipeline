@@ -31,4 +31,6 @@ rule SRA_DB:
         SCRATCH_DIR + "data/sra_" + SRA_PIPE_VERSION + "/{proj}/{samp}/{run}_1.fastq",
         SCRATCH_DIR + "data/sra_" + SRA_PIPE_VERSION + "/{proj}/{samp}/{run}_2.fastq",
     output:
-        SCRATCH_DIR + "data/sra_" + SRA_PIPE_VERSION + "/{proj}/{samp}/{run}.stamp.SRAPIPE
+        SCRATCH_DIR + "data/sra_" + SRA_PIPE_VERSION + "/{proj}/{samp}/{run}.stamp.SRAPIPE"
+    run:
+        proj_id = petljakapi.select.simple_select()
