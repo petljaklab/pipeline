@@ -1,9 +1,9 @@
 [submodule "modules/SRA"]
 	path = modules/SRA
-	url = ./modules/SRA
+	url = https://github.com/petljaklab/SRA.git
 [submodule "modules/GATK_BAM"]
 	path = modules/GATK_BAM
-	url = ./modules/GATK_BAM/
+	url = https://github.com/petljaklab/GATK_BAM.git
 [submodule "modules/TESTS"]
 	path = modules/TESTS
-	url = ./modules/TESTS/
+	url = https://github.com/petljaklab/TESTS.git
