@@ -1,15 +1,16 @@
 GATK_BAM_PIPELINE_VER = "1.0.0"
-
+GATK_ALIGNER_VER = "1.0.0"
+GATK_VERSION = "4.4.0.0"
 
 rule UBAM:
     input:
-        fq1 = "data/{proj}/{samp}/{run}_1.fastq",
-        fq2 = "data/{proj}/{samp}/{run}_2.fastq",
+        fq1 = SCRATCH_DIR + "data/{proj}/{samp}/{run}_1.fastq",
+        fq2 = SCRATCH_DIR + "data/{proj}/{samp}/{run}_2.fastq",
     output:
         ubam = temp(SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.bam")
-    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     log:
-        "data/{proj}/{samp}/{run}.unaln.bam.log"
+        SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.bam.log"
     shell:
         """
         gatk FastqToSam \
@@ -24,15 +25,15 @@ rule UBAM:
 
 rule markadapters:
     input:
-        ubam = "data/{proj}/{samp}/{run}.unaln.bam"
+        ubam = SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.bam"
     output:
-        obam = temp("data/{proj}/{samp}/{run}.unaln.adaptmarked.bam"),
-        metrics = temp("data/{proj}/{samp}/{run}.unaln.adaptmarked.metrics")
+        obam = temp(SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.adaptmarked.bam"),
+        metrics = temp(SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.adaptmarked.metrics")
     log:
-        "data/{proj}/{samp}/{run}.unaln.adaptmarked.bam.log"
+        SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.adaptmarked.bam.log"
     params:
         tmp = lambda wildcards: TEMP_DIR + wildcards.run,
-    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     shell:
         """
         gatk MarkIlluminaAdapters \
@@ -44,21 +45,21 @@ rule markadapters:
 
 rule bwamem2_gatkmerge:
     input:
-        bwa_idxbase = bwa_idx,
-        fa_base = fa,
-        ubam = "data/{proj}/{samp}/{run}.unaln.bam",
-        bam = "data/{proj}/{samp}/{run}.unaln.adaptmarked.bam"
+        bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
+        fa_base = lambda wildcards: FA_PATHS[wildcards.reference],
+        ubam = SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.bam",
+        bam = SCRATCH_DIR + "data/{proj}/{samp}/{run}.unaln.adaptmarked.bam"
     output:
-        bam = temp("data/{proj}/{samp}/bwa-mem2_{version}/{run}.bam")
+        bam = temp(SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.bam")
     resources:
-        threads = align_threads*2,
+        threads = ALIGN_THREADS,
         mem_mb = 60000
     log:
-        samtofastq = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.samtofastq.log",
-        bwa = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.bwa.log",
-        mergebamalignment = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.mergebamalignment.log"
+        samtofastq = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.samtofastq.log",
+        bwa = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.bwa.log",
+        mergebamalignment = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.mergebamalignment.log"
     params:
-        align_threads = align_threads,
+        align_threads = ALIGN_THREADS - 2,
         tmp = lambda wildcards: TEMP_DIR + wildcards.run,
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/{GATK_ALIGNER_VER}/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     shell:
@@ -82,16 +83,16 @@ rule bwamem2_gatkmerge:
 
 rule gatk_markdups:
     input:
-        bam = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.bam"
+        bam = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.bam"
     output:
-        bam = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.dupsflagged.bam",
-        metrics = "data/{proj}/{samp}/bwa-mem2_{version}/{run}.dupsflagged.bam.metrics"
+        bam = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.dupsflagged.bam",
+        metrics = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.dupsflagged.bam.metrics"
     resources:
-        threads = align_threads,
+        threads = ALIGN_THREADS,
         mem_mb = 20000
     log:
-        "data/{proj}/{samp}/bwa-mem2_{version}/{run}.dupsflagged.bam.log"
-    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
+        SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{run}.dupsflagged.bam.log"
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     shell:
         """
         gatk MarkDuplicatesSpark \
@@ -102,16 +103,16 @@ rule gatk_markdups:
         """
 rule gatkmerge:
     input:
-        lambda wildcards: expand("data/{{proj}}/{{samp}}/bwa-mem2_{{version}}/{runid}.dupsflagged.bam", runid = accessions[wildcards.proj][wildcards.samp])
+        lambda wildcards: expand(SCRATCH_DIR + "data/{{proj}}/{{samp}}/bwa-mem2_{{version}}/{{reference}}/{runid}.dupsflagged.bam", runid = accessions[wildcards.proj][wildcards.samp])
     output:
-        merge = "data/{proj}/{samp}/bwa-mem2_{version}/merge/{samp}.merged.bam"
+        merge = SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/merge/{samp}.merged.bam"
     log:
-        "data/{proj}/{samp}/bwa-mem2_{version}/{samp}.merged.bam.log"
+        SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/{samp}.merged.bam.log"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
     resources:
         threads = 2
     params:
-        inputlist = lambda wildcards: expand("-I data/{proj}/{samp}/bwa-mem2_{version}/{runid}.dupsflagged.bam ", proj = wildcards.proj, samp = wildcards.samp, version = wildcards.version, runid = accessions[wildcards.proj][wildcards.samp])
+        inputlist = lambda wildcards: expand("-I {SCRATCH_DIR}data/{proj}/{samp}/bwa-mem2_{version}/{reference}/{runid}.dupsflagged.bam ", SCRATCH_DIR = SCRATCH_DIR, proj = wildcards.proj, samp = wildcards.samp, version = wildcards.version, reference = wildcards.reference, runid = accessions[wildcards.proj][wildcards.samp])
     shell:
         """
         gatk MergeSamFiles \
@@ -119,3 +120,9 @@ rule gatkmerge:
             --USE_THREADING true \
              2> {log}
         """
+
+rule COPY_MERGE:
+    input:
+        SCRATCH_DIR + "data/{proj}/{samp}/bwa-mem2_{version}/merge/{samp}.merged.bam"
+    output:
+        "data/{proj}/{samp}/bwa-mem2_{version}/merge/{samp}.merged.bam"
