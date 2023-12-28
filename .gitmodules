@@ -1,0 +1,9 @@
+[submodule "modules/SRA"]
+	path = modules/SRA
+	url = ./modules/SRA
+[submodule "modules/GATK_BAM"]
+	path = modules/GATK_BAM
+	url = ./modules/GATK_BAM/
+[submodule "modules/TESTS"]
+	path = modules/TESTS
+	url = ./modules/TESTS/
