@@ -9,8 +9,8 @@ SRATOOLS_VERSION: "3.0.1"
 
 ## Analysis paths
 TEMP_DIR: "/gpfs/scratch/culibl01/tmp/"
-SCRATCH_DIR: "/gpfs/scratch/culibl01/projects/"
-PROD_DIR: "/gpfs/data/petljaklab/data/projects/"
+SCRATCH_DIR: "/gpfs/scratch/culibl01/"
+PROD_DIR: "/gpfs/data/petljaklab/data/"
 
 ## Resource paths
 # Probably add these as a module sometime?
