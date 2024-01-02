@@ -47,9 +47,6 @@ for i in id:
     if not i.startswith(tuple(prefixes)):
         raise ValueError(f"Supplied ID does not start with one of {', '.join(prefixes)}")
 
-id_dict = petljakapi.select.parent_ids(in_id = id[0], db = db)
-
-
 ## Check that the entries exist
 ## Remember - here we are not inserting into the PSR tables, you need to do that before you execute this
 #study = petljakapi.select.simple_select("petljakdb_devel", "studies", "id", study)
