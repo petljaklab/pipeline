@@ -46,7 +46,7 @@ id = script_args.id
 for i in id:
     if not i.startswith(tuple(prefixes)):
         raise ValueError(f"Supplied ID does not start with one of {', '.join(prefixes)}")
-print(id)
+
 id_dict = petljakapi.select.parent_ids(in_id = id[0], db = db)
 
 

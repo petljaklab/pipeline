@@ -5,7 +5,8 @@ import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
 ## Create db entry of the incoming analysis
 ## Try doing this as a function I guess? Maybe can repurpose it for the input function (and then put it into a shared library for the pipeline to import)
-def gateway(analysis_name, id_dict, scratch_dir, prod_dir, db = "petljakdb_devel"):
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_devel"):
+    id_dict = petljakapi.select.parent_ids(in_id = given_id, db = db)
     ## Determine what the analysis needs to find in the dict
     deps = db_deps[analysis_name]
     if not all(elem in id_dict.keys() for elem in deps):
