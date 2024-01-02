@@ -31,8 +31,8 @@ rule GEN_READS:
         fa = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fa/cut.fa",
         fai = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fa/cut.fa.fai",
     output:
-        reads1 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/reads1.fq",
-        reads2 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/reads2.fq",
+        reads1 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/readstmp1.fq",
+        reads2 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/readstmp2.fq",
     singularity:
         "/gpfs/data/petljaklab/containers/art/art_latest.sif"
     params:
@@ -43,5 +43,16 @@ rule GEN_READS:
     shell:
         """
         art_illumina -ss HS25 -sam -i {input.fa} -p -l 150 -f 40 -m 200 -s 10 -o {params.outbase} 2> {log}; \
-        scripts/mark_complete.py -i {wildcards.aid} -o {output}
         """
+
+rule MARK_COMPLETE:
+    input:
+        reads1 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/readstmp1.fq",
+        reads2 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/readstmp2.fq",
+    output:
+        reads1 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/reads1.fq",
+        reads2 = SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/reads2.fq",
+    log:
+        SCRATCH_DIR + "studies/{study_id}/samples/{sample_id}/runs/{run_id}/analyses/TESTS/{aid}/fq/api_completion.txt",
+    shell:
+        "python scripts/mark_complete.py -i {wildcards.aid} -d petljakdb_devel {output} > {log} 2>&1; mv {input.reads1} {output.reads1}; mv {input.reads2} {output.reads2}"
