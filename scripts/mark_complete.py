@@ -5,7 +5,6 @@ import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 import petljakapi.update
-from modules.db_deps import db_deps, module_inputs, module_outputs
 import os
 
 parser = argparse.ArgumentParser(
@@ -23,7 +22,7 @@ analysis_id = petljakapi.translate.stringtoid(args.id)
 
 from datetime import datetime
 now = datetime.now()
-timestamp = now.strftime("%d/%m/%Y %H:%M:%S")
+timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
 petljakapi.update.update(args.db, "analyses", {"id":analysis_id}, "analysis_time", timestamp)
 petljakapi.update.update(args.db, "analyses", {"id":analysis_id}, "analysis_complete", "True")
 petljakapi.update.update(args.db, "analyses", {"id":analysis_id}, "analysis_dir", os.path.dirname(args.outputs[0]))

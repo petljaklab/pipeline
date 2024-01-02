@@ -3,7 +3,7 @@ import petljakapi
 from petljakapi import connection
 import petljakapi.select
 import petljakapi.inserts
-
+from lib.input_functions import gateway
 
 configfile: "config.yaml"
 locals().update(config)
@@ -28,7 +28,7 @@ include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
 #                   └──analyses/
 #                       └──{pipeline_name}
 #                           └──{analysis.id}
-print(snakemake.get_argument_parser().parse_args().target)
+#print(snakemake.get_argument_parser().parse_args().target)
 #print(DAG.requested_files)
 
 #def pipeline_init(terminal_id, id_type = None, analysis_name):

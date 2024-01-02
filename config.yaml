@@ -21,3 +21,5 @@ ALN_REFERENCES:
 FA_PATHS:
   hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/fasta/hg19.fa"
   hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/fasta/hg38.fa"
+
+db: "petljakdb_devel"

@@ -3,23 +3,28 @@ import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
-## Create db entry of the incoming analysis
-## Try doing this as a function I guess? Maybe can repurpose it for the input function (and then put it into a shared library for the pipeline to import)
-def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_devel"):
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_devel") -> list:
+    """
+    Creates a database entry for the requested analysis and returns the directory that will be used for that entry. 
+
+    Parameters:
+    analysis_name (str): Name of the analysis, e.g. "FASTQ" or "WGS_MERGE_BAM".
+    given_id: Human-readable lowest-level ID. ie. run ID formatted as MPRXXXXXX, where Xs = Numbers. If no run, provide MPS ID. If no MPS, provide MPP.
+    scratch_dir: Directory for scratch space for the pipeline. Should be specified in the config for pipeline usage
+
+    Returns:
+    list: List of paths associated with the output of the pipeline to be run. E.g. running with the FASTQ analysis_name returns a path to the .fq files to be created by the pipeline
+    """
     id_dict = petljakapi.select.parent_ids(in_id = given_id, db = db)
     ## Determine what the analysis needs to find in the dict
     deps = db_deps[analysis_name]
     if not all(elem in id_dict.keys() for elem in deps):
         raise ValueError(f"Requested analysis {analysis_name} requires db entries {deps} but only provided {id_dict.keys()}")
-    ## Determine what the required input pipeline is
-    ## First determine the input type we need e.g. FASTQ, WGS_MERGE_BAM
-    req_inputs = module_outputs[analysis_name]
-    print(req_inputs)
     ## Identify the database level we need for the input to this pipeline
     ## Should be the final one (ie. should ensure that the db_deps is always ordered hierarchically)
     terminal_dep = deps[-1]
     ## Handle fastq inputs
-    if req_inputs == "FASTQ":
+    if analysis_name == "FASTQ":
         ## Get the entry of the "run" table corresponding to the given ID
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
         ## index 4 is the "source" column
@@ -33,15 +38,22 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
             INPIPE = "TESTS"
         else:
             raise ValueError(f"Handling of fastq source {source} not yet implemented")
+    ## Handle Merge inputs
+    elif analysis_name == "WGS_MERGE_BAM":
+        ## Select the entry of the relevant sample table
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        ## Index 0 is the id
+        INPIPE = "GATK_BAM"
+        table_id = entry[0][0]
+        end_path = ["merge/hg19/merged.bam", "merge/hg19/merged.bam.bai"]
+        path_prefix = prod_dir
     else:
         raise ValueError(f"Handling of {analysis_name} not yet supported")
-    ## Check for an entry already
-    petljakapi.select.multi_select(db = db, table = terminal_dep, filters = {"id":source})
     ## Now we construct the input file to make
     path = f"{path_prefix}studies/{id_dict['studies']}/"
-    if "samples" in id_dict.keys():
+    if id_dict["samples"]:
         path = path + f"samples/{id_dict['samples']}/"
-    if "runs" in id_dict.keys():
+    if id_dict["runs"]:
         path = path + f"runs/{id_dict['runs']}/"
     # Now we insert the analysis entry into the database, and use that ID to construct the path
     path = path + "analyses/" + INPIPE + "/"
@@ -49,6 +61,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
     analysis_entry = {
         "pipeline_name":INPIPE,
         "pipeline_version":"1.0.0",
+        "analysis_type":analysis_name,
         "analysis_dir":path,
         "input_table":terminal_dep,
         terminal_dep_string:table_id

@@ -37,8 +37,8 @@ with open(configfile) as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 ## Check inputs
-if script_args.pipeline not in available_pipelines:
-    raise ValueError(f"Requested pipeline not in {available_pipelines}")
+if script_args.pipeline not in available_analyses:
+    raise ValueError(f"Requested pipeline not in {available_analyses}")
 
 id = script_args.id
 
@@ -61,12 +61,12 @@ for i in id:
 ## Run the initial input function
 ## This is going to be the TESTS tp53 test for now
 # First get the analysis ID for what we're trying to make so we can construct it
-analysis_path = lib.input_functions.gateway(analysis_name=script_args.pipeline, id_dict = id_dict, scratch_dir = config["SCRATCH_DIR"], prod_dir = config["PROD_DIR"])
+analysis_path = lib.input_functions.gateway(analysis_name=script_args.pipeline, given_id=id[0], scratch_dir = config["SCRATCH_DIR"], prod_dir = config["PROD_DIR"])
 
 ## Delete argparse arguments?
 sys.argv = [sys.argv[0]]
 sys.argv.extend(unknown)
-print(sys.argv)
+#print(sys.argv)
 if not unknown:
     unknown = []
 unknown.extend(analysis_path)

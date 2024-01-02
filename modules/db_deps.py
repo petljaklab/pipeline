@@ -1,17 +1,12 @@
 ## Probably this should all go in the database eventually but for now this is easier for prototyping
 
 db_deps = {
-    "TESTS": [
+    "FASTQ": [
         "studies",
         "samples",
         "runs"
     ],
-    "SRA": [
-        "studies",
-        "samples",
-        "runs"
-    ],
-    "GATK_BAM": [
+    "WGS_MERGE_BAM": [
         "studies",
         "samples"
     ]
