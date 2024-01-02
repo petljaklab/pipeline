@@ -31,7 +31,7 @@ include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
 print(snakemake.get_argument_parser().parse_args().target)
 #print(DAG.requested_files)
 
-def pipeline_init(terminal_id, id_type = None, analysis_name):
+#def pipeline_init(terminal_id, id_type = None, analysis_name):
     ## Takes a given ID and analysis name and does a few things
     ## First thing we need to do is get an analysis ID, either from existing matching analysis or make a new db entry with pending status
     ## Return the relevant path with AIDs filled in
