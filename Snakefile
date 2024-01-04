@@ -14,6 +14,7 @@ basedir = os.path.abspath(workflow.basedir)
 include: os.path.join(basedir, "modules/GATK_BAM/GATK_BAM.smk")
 include: os.path.join(basedir, "modules/SRA/SRA.smk")
 include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
+include: os.path.join(basedir, "modules/MUTECT_CELLLINE/MUTECT_CELLLINE.smk")
 
 #{prod_dir} OR {scratch_dir}/
 #   └──studies/
@@ -38,7 +39,8 @@ include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
     ## e.g. file path: "{arbitrary path}/studies/MPP000001/samples/MPS000001/runs/MPS000001/analyses/TESTS/MPA000001/flatfile.txt"
     
 
-
+wildcard_constraints:
+    sample="MPS[0-9]+"
 def identify_pipeline(infile):
 
     return(None)

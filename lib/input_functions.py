@@ -15,6 +15,11 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
     Returns:
     list: List of paths associated with the output of the pipeline to be run. E.g. running with the FASTQ analysis_name returns a path to the .fq files to be created by the pipeline
     """
+    ## initialize empty dict for analysis entry
+    ## We do this because we add to the dict according to what we're making
+    analysis_entry = {}
+    #print(given_id)
+    
     id_dict = petljakapi.select.parent_ids(in_id = given_id, db = db)
     ## Determine what the analysis needs to find in the dict
     deps = db_deps[analysis_name]
@@ -24,6 +29,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
     ## Should be the final one (ie. should ensure that the db_deps is always ordered hierarchically)
     terminal_dep = deps[-1]
     ## Handle fastq inputs
+    ## Maybe to be replaced with a function for better readability
     if analysis_name == "FASTQ":
         ## Get the entry of the "run" table corresponding to the given ID
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
@@ -36,6 +42,8 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
             INPIPE = "SRA"
         elif source == "synthetic_test":
             INPIPE = "TESTS"
+        elif source == "external_bam":
+            INPIPE = "EXTERNAL_BAM"
         else:
             raise ValueError(f"Handling of fastq source {source} not yet implemented")
     ## Handle Merge inputs
@@ -47,25 +55,39 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
         table_id = entry[0][0]
         end_path = ["merge/hg19/merged.bam", "merge/hg19/merged.bam.bai"]
         path_prefix = prod_dir
+    elif analysis_name == "MUTECT":
+        ## Select the entry of the relevant sample table
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        table_id = entry[0][0]
+        end_path = ["mutect2/hg19/variants.vcf"]
+        path_prefix = prod_dir
+        cell_id = entry[0][6]
+        if cell_id is not None or "NULL":
+            INPIPE = "MUTECT_CELLLINE"
+        else:
+            raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
     else:
         raise ValueError(f"Handling of {analysis_name} not yet supported")
     ## Now we construct the input file to make
     path = f"{path_prefix}studies/{id_dict['studies']}/"
+    analysis_entry.update({"studies_id":petljakapi.translate.stringtoid(id_dict['studies'])})
     if id_dict["samples"]:
         path = path + f"samples/{id_dict['samples']}/"
+        analysis_entry.update({"samples_id":petljakapi.translate.stringtoid(id_dict['samples'])})
     if id_dict["runs"]:
         path = path + f"runs/{id_dict['runs']}/"
+        analysis_entry.update({"runs_id":petljakapi.translate.stringtoid(id_dict['runs'])})
     # Now we insert the analysis entry into the database, and use that ID to construct the path
     path = path + "analyses/" + INPIPE + "/"
     terminal_dep_string = terminal_dep + "_id"
-    analysis_entry = {
+    analysis_entry.update({
         "pipeline_name":INPIPE,
         "pipeline_version":"1.0.0",
         "analysis_type":analysis_name,
         "analysis_dir":path,
         "input_table":terminal_dep,
         terminal_dep_string:table_id
-    }
+    })
     ## Insert/get the relevant ID
     analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses")[0][0]
     ## Construct final IDs

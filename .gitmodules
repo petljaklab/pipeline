@@ -7,3 +7,6 @@
 [submodule "modules/TESTS"]
 	path = modules/TESTS
 	url = https://github.com/petljaklab/TESTS.git
+[submodule "modules/EXTERNAL_BAM"]
+	path = modules/EXTERNAL_BAM
+	url = https://github.com/petljaklab/EXTERNAL_BAM.git
