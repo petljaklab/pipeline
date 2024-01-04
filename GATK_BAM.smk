@@ -114,7 +114,7 @@ rule GATK_MARKDUPS:
     input:
         bam = rules.BWAMEM2_GATKMERGE.output,
     output:
-        bam = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam",
+        bam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam"),
         metrics = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam.metrics"
     resources:
         threads = ALIGN_THREADS,
@@ -138,7 +138,7 @@ rule GATK_MERGE:
     input:
         aggregate_runs
     output:
-        merge = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam"
+        merge = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam")
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
@@ -159,7 +159,7 @@ rule INDEX_GATKMERGE:
     input:
         rules.GATK_MERGE.output
     output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.bai"
+        temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.bai")
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
     singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
@@ -175,4 +175,4 @@ rule copy_files:
         bam = PROD_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam",
         bai = PROD_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.bai"
     shell:
-        "rsync {input.bam} {output.bam}; rsync {input.bai} {output.bai}"
+        "rsync {input.bam} {output.bam}; rsync {input.bai} {output.bai} "
