@@ -4,15 +4,15 @@ SRA_PIPE_VERSION = "1.0.0"
 
 rule PREFETCH:
     output:
-        sra = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.sra"),
+        sra = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}/{sra}.sra"),
     retries: 3
     params:
         SCRATCH_DIR = SCRATCH_DIR,
         SRA_PIPE_VERSION = SRA_PIPE_VERSION
     log:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}/{sra}.log"
     shell:
-        "prefetch {wildcards.run} -O {params.SCRATCH_DIR}studies/{wildcards.study}/samples/{wildcards.sample}/runs/{wildcards.run}/analyses/SRA/{wildcards.analysis}/sra/ -f ALL -r no &> {log};"
+        "prefetch {wildcards.sra} -O {params.SCRATCH_DIR}studies/{wildcards.study}/samples/{wildcards.sample}/runs/{wildcards.run}/analyses/SRA/{wildcards.analysis}/sra/ -f ALL -r no &> {log};"
 
 rule DUMP:
     input:
