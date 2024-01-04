@@ -10,3 +10,6 @@
 [submodule "modules/EXTERNAL_BAM"]
 	path = modules/EXTERNAL_BAM
 	url = https://github.com/petljaklab/EXTERNAL_BAM.git
+[submodule "modules/MUTECT_CELLLINE"]
+	path = modules/MUTECT_CELLLINE
+	url = https://github.com/petljaklab/MUTECT_CELLLINE.git
