@@ -7,3 +7,7 @@ ERR*/
 studies/
 slurm*
 nohup.*
+BC-1_A.log
+bt-474_A.log
+jan4*
+modules/PSEUDOBULK_CELLLINE/
