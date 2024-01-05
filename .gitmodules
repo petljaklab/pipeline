@@ -13,6 +13,3 @@
 [submodule "modules/MUTECT_CELLLINE"]
 	path = modules/MUTECT_CELLLINE
 	url = https://github.com/petljaklab/MUTECT_CELLLINE.git
-[submodule "MUTECT_CELLLINE"]
-	path = MUTECT_CELLLINE
-	url = https://github.com/petljaklab/MUTECT_CELLLINE
