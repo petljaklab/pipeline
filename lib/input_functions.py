@@ -66,6 +66,12 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
             INPIPE = "MUTECT_CELLLINE"
         else:
             raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
+    elif analysis_name == "EXTERNAL_BAM":
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        table_id = entry[0][0]
+        end_path = ["splitfq/split.done"]
+        path_prefix = scratch_dir
+        INPIPE = "EXTERNAL_BAM"
     else:
         raise ValueError(f"Handling of {analysis_name} not yet supported")
     ## Now we construct the input file to make
