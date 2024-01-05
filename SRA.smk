@@ -23,7 +23,7 @@ rule DUMP:
     params:
         SCRATCH_DIR = SCRATCH_DIR,
         SRA_PIPE_VERSION = SRA_PIPE_VERSION,
-        TEMP_PATH = TEMP_DIR + "{wildcards.sra}/",
+        TEMP_PATH = lambda wildcards: f"{TEMP_DIR}{wildcards.sra}/"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
     shell:
@@ -51,5 +51,5 @@ rule COPY_SRA:
     shell:
         """
         mv {input[0]} {output.reads1}; mv {input[1]} {output.reads2}; \
-        python scripts/mark_complete.py -i {wildcards.analysis} -d {params.DB} 
+        python scripts/mark_complete.py -i {wildcards.analysis} -d {params.DB} {output.reads1}
         """
