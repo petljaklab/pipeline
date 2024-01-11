@@ -12,45 +12,44 @@ rule MUTECT2_SPLIT:
         cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0],
         parent_merge = lambda wildcards: parent_cell(wildcards)
     output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chr}.vcf",
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chrom}.vcf",
     singularity:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
         mem_mb = 50000
     benchmark:
-        PROD_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chr}.resources",
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chrom}.resources",
     log:
-        "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chr}.log"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chrom}.log"
     shell:
         """
-            gatk Mutect2 \
-            -R {input.fa} \
-            -L {wildcards.chr}
+            gatk Mutect2 -R {input.fa} \
+            -L {wildcards.chrom} \
             -I {input.cell_merge} \
-            -I {input.parent_merge} \
+            -I \{input.parent_merge} \
             --normal {wildcards.sample} \
-            --panel-of-normals /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/pon.vcf \
+            --panel-of-normals /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/pon.vcf  \
             --germline-resource /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf \
             --native-pair-hmm-threads 1 \
-            -O {output} &> {log}
+            --output {output} &> {log}
         """
 
-    rule COMBINE_MUTECT2:
-        input:
-            lambda wildcards: expand(SCRATCH_DIR + "studies/{{study}}/samples/{{sample}}/analyses/MUTECT_CELLLINE/{{analysis}}/mutect2/{{reference}}/variants_{chr}.vcf", chr = chromosomes[wildcards.reference])
-        output:
-            PROD_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants.vcf",
-        log:
-            "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants.log"
-        singularity:
-            f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
-        params:
-            inputlist = lambda wildcards, input: "-I ".join([input]) if isinstance(input, str) else "-I ".join(input)
-        shell:
-            """
-                gatk MergeVcfs \
-                    -I {inputlist} \
-                    -O {output} &> {log}
-            """
+rule COMBINE_MUTECT2:
+    input:
+        lambda wildcards: expand(SCRATCH_DIR + "studies/{{study}}/samples/{{sample}}/analyses/MUTECT_CELLLINE/{{analysis}}/mutect2/{{reference}}/variants_{chr}.vcf", chr = chromosomes[wildcards.reference])
+    output:
+        PROD_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants.vcf",
+    log:
+        "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants.log"
+    singularity:
+        f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
+    params:
+        inputlist = lambda wildcards, input: "-I ".join([input]) if isinstance(input, str) else "-I ".join(input)
+    shell:
+        """
+            gatk MergeVcfs \
+                -I {params.inputlist} \
+                -O {output} &> {log}
+        """
         
