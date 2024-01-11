@@ -42,9 +42,6 @@ include: os.path.join(basedir, "modules/EXTERNAL_BAM/EXTERNAL_BAM.smk")
 
 wildcard_constraints:
     sample="MPS[0-9]+"
-def identify_pipeline(infile):
-
-    return(None)
 
 rule all:
     input:

@@ -53,7 +53,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
         ## Index 0 is the id
         INPIPE = "GATK_BAM"
         table_id = entry[0][0]
-        end_path = ["merge/hg19/merged.bam", "merge/hg19/merged.bam.bai"]
+        end_path = ["merge/hg19/merged.bam", "merge/hg19/merged.bam.bai", "merge/hg19/merged.done"]
         path_prefix = prod_dir
     elif analysis_name == "MUTECT":
         ## Select the entry of the relevant sample table

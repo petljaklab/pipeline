@@ -8,10 +8,10 @@ BWAMEM2_VERSION: "2.2.1"
 SRATOOLS_VERSION: "3.0.1"
 
 ## Analysis paths
-TEMP_DIR: "/gpfs/scratch/culibl01/tmp/"
-SCRATCH_DIR: "/gpfs/scratch/culibl01/"
+TEMP_DIR: "/tmp/"
+#SCRATCH_DIR: "/gpfs/scratch/culibl01/"
 PROD_DIR: "/gpfs/data/petljaklab/data/"
-
+SCRATCH_DIR: "/gpfs/data/petljaklab/data/"
 ## Resource paths
 # Probably add these as a module sometime?
 ALN_REFERENCES:
