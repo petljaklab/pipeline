@@ -9,6 +9,8 @@ rule PREFETCH:
     params:
         SCRATCH_DIR = SCRATCH_DIR,
         SRA_PIPE_VERSION = SRA_PIPE_VERSION
+    resources:
+        iotasks = 2
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}/{sra}.log"
     shell:
@@ -24,6 +26,8 @@ rule DUMP:
         SCRATCH_DIR = SCRATCH_DIR,
         SRA_PIPE_VERSION = SRA_PIPE_VERSION,
         TEMP_PATH = lambda wildcards: f"{TEMP_DIR}{wildcards.sra}/"
+    resources:
+        iotasks = 2
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
     shell:
@@ -48,6 +52,8 @@ rule COPY_SRA:
         reads2 = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/fq/reads2.fq")
     params:
         DB = db,
+    resources:
+        iotasks = 2
     shell:
         """
         mv {input[0]} {output.reads1}; mv {input[1]} {output.reads2}; \
