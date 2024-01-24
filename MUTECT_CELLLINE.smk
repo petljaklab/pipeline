@@ -17,7 +17,9 @@ rule MUTECT2_SPLIT:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 50000
+        mem_mb = 50000,
+        iotasks = 2,
+        slurm_partition = "cpu_medium"
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/variants_{chrom}.resources",
     log:
@@ -46,6 +48,8 @@ rule COMBINE_MUTECT2:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     params:
         inputlist = lambda wildcards, input: "-I ".join([input]) if isinstance(input, str) else "-I ".join(input)
+    resources:
+        slurm_partition = "cpu_short"
     shell:
         """
             gatk MergeVcfs \
