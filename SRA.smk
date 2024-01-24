@@ -10,7 +10,9 @@ rule PREFETCH:
         SCRATCH_DIR = SCRATCH_DIR,
         SRA_PIPE_VERSION = SRA_PIPE_VERSION
     resources:
-        iotasks = 2
+        iotasks = 2,
+        runtime = 700,
+        slurm_partition = "cpu_short,cpu_dev,fn_short"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}/{sra}.log"
     shell:
@@ -27,7 +29,9 @@ rule DUMP:
         SRA_PIPE_VERSION = SRA_PIPE_VERSION,
         TEMP_PATH = lambda wildcards: f"{TEMP_DIR}{wildcards.sra}/"
     resources:
-        iotasks = 2
+        iotasks = 2,
+        slurm_partition = "cpu_short,cpu_dev,fn_short",
+        runtime = 700,
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
     shell:
@@ -53,7 +57,9 @@ rule COPY_SRA:
     params:
         DB = db,
     resources:
-        iotasks = 2
+        iotasks = 2,
+        slurm_partition = "cpu_short,cpu_dev,fn_short",
+        runtime = 700,
     shell:
         """
         mv {input[0]} {output.reads1}; mv {input[1]} {output.reads2}; \
