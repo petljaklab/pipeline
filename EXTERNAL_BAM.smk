@@ -28,8 +28,11 @@ checkpoint SPLIT_BAM:
         "/gpfs/data/petljaklab/containers/samtools/samtools_1.18.sif"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/EXTERNAL_BAM/{analysis}/split_bams/split.log"
+    threads: 8
     resources:
-        threads = 8
+        threads = 8,
+        slurm_partition = "cpu_short",
+        iotasks = 5,
     shell:
         "samtools split {input} -f {output}/%*_%#.%. -@ {resources.threads}"
 
@@ -44,6 +47,8 @@ rule EXTERNAL_BAM_TO_FASTQ:
         "/gpfs/data/petljaklab/containers/samtools/samtools_1.18.sif"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/EXTERNAL_BAM/{analysis}/splitfq/{file}.log",
+    resources:
+        iotasks = 2,
     shell:
         "gatk SamToFastq -I {input} -F {output.reads1} -F2 {output.reads2} -FU {output.readsU} &> {log}"
 
@@ -52,6 +57,8 @@ rule ADD_EXTERNAL_RUNS:
         collate_output_fastqs
     output:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/EXTERNAL_BAM/{analysis}/splitfq/split.done"
+    resources:
+        slurm_partition = "cpu_short"
     run:
         for i in input:
             i1 = i
