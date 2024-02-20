@@ -32,7 +32,7 @@ def aggregate_runs(wildcards) -> list:
 rule UBAM:
     ## Generates unaligned bams for GATK pipeline
     input:
-        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")
+        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = config["db"])
     output:
         ubam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.bam")
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
@@ -65,7 +65,7 @@ rule MARK_ADAPTERS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.bam.log"
     params:
-        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis,
+        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/markadapts/",
     benchmark: 
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.benchmark"
     resources:
@@ -75,11 +75,13 @@ rule MARK_ADAPTERS:
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     shell:
         """
+        mkdir -p {params.tmp}
         gatk MarkIlluminaAdapters \
             -I {input.ubam} \
             -O {output.obam} \
             -M {output.metrics} \
             -TMP_DIR {params.tmp} 2> {log}
+        rm -rf {params.tmp}
         """
 
 rule MARKED_SAM_TO_FASTQ:
@@ -91,7 +93,7 @@ rule MARKED_SAM_TO_FASTQ:
         samtofastq = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.samtofastq.log",
     params:
         align_threads = ALIGN_THREADS - 2,
-        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis,
+        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/marktofq/",
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.samtofastq.benchmark"
     resources:
@@ -100,11 +102,13 @@ rule MARKED_SAM_TO_FASTQ:
         slurm_partition = "cpu_dev,cpu_short,fn_short"
     shell:
         """
+        mkdir -p {params.tmp}
         gatk SamToFastq \
             -I {input.bam} \
             -FASTQ {output.ifastq} \
             -CLIPPING_ATTRIBUTE XT -CLIPPING_ACTION 2 -INTERLEAVE true -NON_PF true \
             -TMP_DIR {params.tmp} 2> {log.samtofastq}
+        rm -rf {params.tmp}
         """
 
 rule BWA:
@@ -145,7 +149,7 @@ rule MERGEBAMALIGNMENT:
     log:
         mergebamalignment = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.log"
     params:
-        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis,
+        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/mergebamalignment/",
     resources:
         threads = 1,
         cpus = 1,
@@ -156,6 +160,7 @@ rule MERGEBAMALIGNMENT:
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.benchmark"
     shell:
         """
+        mkdir -p {params.tmp}
         gatk MergeBamAlignment \
             -ALIGNED_BAM {input.bwa} \
             -UNMAPPED_BAM {input.ubam} \
@@ -165,6 +170,7 @@ rule MERGEBAMALIGNMENT:
             -INCLUDE_SECONDARY_ALIGNMENTS true -MAX_INSERTIONS_OR_DELETIONS -1 \
             -PRIMARY_ALIGNMENT_STRATEGY MostDistant -ATTRIBUTES_TO_RETAIN XS \
             -TMP_DIR {params.tmp} 2> {log.mergebamalignment}
+        rm -rf {params.tmp}
         """
 
 
@@ -302,15 +308,17 @@ rule GATK_BAM_DONE:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.done"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
+    params:
+        db = config["db"]
     resources:
         runtime = 10,
         slurm_partition = "cpu_short",
     shell:
-        "python scripts/mark_complete.py --id {wildcards.analysis} --db petljakdb_devel {input} >> {log}; touch {output}"
+        "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input} >> {log}; touch {output}"
 
 rule all_at_once:
     input:
-        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel"),
+        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = config["db"]),
         bwa_idxbase = lambda wildcards: ALN_REFERENCES["hg19"],
         fa_base = lambda wildcards: FA_PATHS["hg19"],
     output:
