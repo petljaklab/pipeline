@@ -3,7 +3,7 @@ import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
-def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_devel") -> list:
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") -> list:
     """
     Creates a database entry for the requested analysis and returns the directory that will be used for that entry. 
 
@@ -21,6 +21,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
     #print(given_id)
     
     id_dict = petljakapi.select.parent_ids(in_id = given_id, db = db)
+    print(id_dict)
     ## Determine what the analysis needs to find in the dict
     deps = db_deps[analysis_name]
     if not all(elem in id_dict.keys() for elem in deps):
@@ -40,6 +41,8 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
         path_prefix = scratch_dir
         if source == "SRA":
             INPIPE = "SRA"
+        elif source == "EGA":
+            INPIPE = "EGA"
         elif source == "synthetic_test":
             INPIPE = "TESTS"
         elif source == "external_bam":
@@ -95,7 +98,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb_deve
         terminal_dep_string:table_id
     })
     ## Insert/get the relevant ID
-    analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses")[0][0]
+    analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses", db = db)[0][0]
     ## Construct final IDs
     out_paths = [path + petljakapi.translate.idtostring(analysis_id, "MPA") + "/" + p for p in end_path]
     return(out_paths)

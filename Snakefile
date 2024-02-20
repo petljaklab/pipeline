@@ -13,6 +13,7 @@ basedir = os.path.abspath(workflow.basedir)
 
 include: os.path.join(basedir, "modules/GATK_BAM/GATK_BAM.smk")
 include: os.path.join(basedir, "modules/SRA/SRA.smk")
+include: os.path.join(basedir, "modules/EGA/EGA.smk")
 include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
 include: os.path.join(basedir, "modules/MUTECT_CELLLINE/MUTECT_CELLLINE.smk")
 include: os.path.join(basedir, "modules/EXTERNAL_BAM/EXTERNAL_BAM.smk")

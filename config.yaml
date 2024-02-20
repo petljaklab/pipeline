@@ -1,5 +1,5 @@
 REFERENCE_GENOME_NAME: "hg19"
-ALIGN_THREADS: 16
+ALIGN_THREADS: 8
 
 
 ## Container paths & versions
@@ -15,14 +15,14 @@ SCRATCH_DIR: "/gpfs/data/petljaklab/data/"
 ## Resource paths
 # Probably add these as a module sometime?
 ALN_REFERENCES:
-  hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/bwa2/hg19.fa"
-  hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa2/hg38.fa"
+  hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/bwa/hg19.fa"
+  hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa/hg38.fa"
 
 FA_PATHS:
   hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/fasta/hg19.fa"
   hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/fasta/hg38.fa"
 
-db: "petljakdb_devel"
+db: "petljakdb"
 
 chromosomes:
   hg19: 

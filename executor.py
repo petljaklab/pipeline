@@ -14,8 +14,6 @@ import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
 import lib.input_functions
 
-## Hardcoded for now
-db = "petljakdb_devel"
 
 parser = argparse.ArgumentParser(
     prog="executor.py",

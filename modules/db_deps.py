@@ -21,10 +21,11 @@ db_deps = {
 }
 
 ## Describes the endpoint of a pipeline
-## Controlled vocabulary: [FASTQ, MERGE_BAM, ]
+## Controlled vocabulary: [FASTQ, MERGE_BAM]
 module_outputs = {
     "TESTS":"FASTQ",
     "SRA":"FASTQ",
+    "EGA":"FASTQ",
     "GATK_BAM":"WGS_MERGE_BAM",
     "MUTECT_CELLLINE":"MUTECT",
     "EXTERNAL_BAM":"EXTERNAL_BAM"
@@ -44,6 +45,7 @@ for key, value in module_outputs.items():
 module_inputs = {
     "TESTS":[],
     "SRA":[],
+    "EGA":[],
     "GATK_BAM":["FASTQ"],
     "MUTECT_CELLLINE":["WGS_MERGE_BAM"],
     "EXTERNAL_BAM":[]
