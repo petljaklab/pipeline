@@ -1,10 +1,13 @@
 import os
+import numpy as np
 
 GATK_BAM_PIPELINE_VER = "1.0.0"
 
 GATK_ALIGNER_VER = "1.0.1"
 GATK_VERSION = "4.4.0.0"
 SAMTOOLS_VERSION = "1.18"
+
+ruleorder: UBAM > EXTERNAL_BAM_TO_FASTQ > SPLIT_BAM
 
 def aggregate_runs(wildcards) -> list:
     """
@@ -40,9 +43,13 @@ rule UBAM:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.bam.log"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.benchmark"
     resources:
-        runtime = 120,
+        runtime = 240,
         iotasks = 2,
-        slurm_partition = "cpu_dev,cpu_short,fn_short"
+        slurm_partition = "cpu_dev"
+    params:
+        TEMP_DIR = TEMP_DIR,
+        TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
+    priority: 9999
     shell:
         """
         gatk FastqToSam \
@@ -69,10 +76,11 @@ rule MARK_ADAPTERS:
     benchmark: 
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.benchmark"
     resources:
-        runtime = 120,
+        runtime = 240,
         iotasks = 2,
         slurm_partition = "cpu_dev,cpu_short,fn_short"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
+    priority: 1000
     shell:
         """
         mkdir -p {params.tmp}
@@ -100,6 +108,7 @@ rule MARKED_SAM_TO_FASTQ:
         runtime = 480,
         iotasks = 2,
         slurm_partition = "cpu_dev,cpu_short,fn_short"
+    priority: 1001
     shell:
         """
         mkdir -p {params.tmp}
@@ -123,7 +132,8 @@ rule BWA:
         cpus = ALIGN_THREADS,
         mem_mb = 30000,
         iotasks = 4,
-        slurm_partition = "cpu_medium,fn_medium"
+        slurm_partition = "cpu_medium,fn_medium",
+        tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
         bwa = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.bwa.log",
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
@@ -131,11 +141,18 @@ rule BWA:
     params:
         tmpfastqpath = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/fastq/",
         tmpfastq = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/fastq/input.fastq"
+    priority: 1002
     shell:
         """
-            mkdir -p {params.tmpfastqpath}
+            set +eo pipefail;
+            mkdir -p {params.tmpfastqpath};
             cp {input.ifastq} {params.tmpfastq};
             bwa mem -M -t {threads} -p {input.bwa_idxbase} {params.tmpfastq} > {output} 2> {log.bwa};
+            if [ $? -ne 0 ]; then
+                rm {params.tmpfastq};
+                set -eo pipefail;
+                exit 69;
+            fi;
             rm {params.tmpfastq}
         """
 
@@ -158,6 +175,7 @@ rule MERGEBAMALIGNMENT:
         slurm_partition = "cpu_medium,fn_medium"
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.benchmark"
+    priority: 9999
     shell:
         """
         mkdir -p {params.tmp}
@@ -173,87 +191,48 @@ rule MERGEBAMALIGNMENT:
         rm -rf {params.tmp}
         """
 
-
-rule BWAMEM2_GATKMERGE:
-    ## Does a few things. First converts the adapter-marked bam to fastq for alignment, then aligns them to the reference, then performs MergeBamAlignment to merge
-    ## aligned/unaligned reads (I think) from the unaligned bam and the newly aligned sam and output a bam
-    ## Deprecated because it doesn't play nice with memory
-    input:
-        bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
-        fa_base = lambda wildcards: FA_PATHS[wildcards.reference],
-        ubam = rules.UBAM.output,
-        bam = rules.MARK_ADAPTERS.output.obam,
-    output:
-        bam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.bama")
-    threads: ALIGN_THREADS
-    resources:
-        threads = ALIGN_THREADS,
-        cpus = ALIGN_THREADS,
-        mem_mb = 20000,
-        iotasks = 4,
-        slurm_partition = "cpu_medium,fn_medium"
-    log:
-        samtofastq = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.samtofastq.log",
-        bwa = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.bwa.log",
-        mergebamalignment = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.log"
-    params:
-        align_threads = ALIGN_THREADS - 2,
-        tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis,
-    singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
-    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.benchmark"
-    shell:
-        """
-        gatk SamToFastq \
-            -I {input.bam} \
-            -FASTQ /dev/stdout \
-            -CLIPPING_ATTRIBUTE XT -CLIPPING_ACTION 2 -INTERLEAVE true -NON_PF true \
-            -TMP_DIR {params.tmp} 2> {log.samtofastq} | \
-        bwa mem -M -t {params.align_threads} -p {input.bwa_idxbase} /dev/stdin 2> {log.bwa} | \
-        gatk MergeBamAlignment \
-            -ALIGNED_BAM /dev/stdin \
-            -UNMAPPED_BAM {input.ubam} \
-            -OUTPUT {output.bam} \
-            -R {input.fa_base} -CREATE_INDEX true -ADD_MATE_CIGAR true \
-            -CLIP_ADAPTERS false -CLIP_OVERLAPPING_READS true \
-            -INCLUDE_SECONDARY_ALIGNMENTS true -MAX_INSERTIONS_OR_DELETIONS -1 \
-            -PRIMARY_ALIGNMENT_STRATEGY MostDistant -ATTRIBUTES_TO_RETAIN XS \
-            -TMP_DIR {params.tmp} 2> {log.mergebamalignment}
-        """
-
 rule GATK_MARKDUPS:
     ## Mark duplicate reads/alignments
     input:
-        bam = rules.MERGEBAMALIGNMENT.output,
+        rules.MERGEBAMALIGNMENT.output,
     output:
         bam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam"),
 #        metrics = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam.metrics"
-    threads: 1
+    threads: 1    
+    params:
+        TEMP_DIR = TEMP_DIR,
+        TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
+        TEMP_BAM_FILE = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/markdups/input.bam"
     resources:
         threads = 1,
         cpus = ALIGN_THREADS,
         mem_mb = 20000,
         iotasks = 4,
-        slurm_partition = "cpu_short,fn_short",
-        runtime = 720
-    params:
-        TEMP_DIR = TEMP_DIR,
-        TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
-        TEMP_BAM_FILE = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/markdups/input.bam"
+        slurm_partition = "cpu_medium,fn_medium",
+        runtime = 60*24*3,
+        tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam.log"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.benchmark"
+    priority: 1003
     shell:
         """
+        set +eo pipefail;
         rm -rf {output.bam}.parts/;
         mkdir -p {params.TEMP_BAM_PATH};
-        cp {input.bam} {params.TEMP_BAM_FILE};
+        cp {input} {params.TEMP_BAM_FILE};
         gatk MarkDuplicatesSpark \
             -I {params.TEMP_BAM_FILE} \
             -O {output.bam} \
             --conf 'spark.executor.cores={resources.threads}' \
             --conf 'spark.local.dir={params.TEMP_DIR}' &> {log};
-        rm {params.TEMP_BAM_FILE}
+        if [ $? -ne 0 ]; then
+            rm {params.TEMP_BAM_FILE};
+            set -eo pipefail;
+            exit 69;
+        fi
+        rm -rf {params.TEMP_BAM_FILE}
         """
 
 rule GATK_MERGE:
@@ -262,7 +241,7 @@ rule GATK_MERGE:
     input:
         aggregate_runs
     output:
-        merge = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam"
+        merge = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam")
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
@@ -276,6 +255,7 @@ rule GATK_MERGE:
     params:
         inputlist = lambda wildcards, input: f"-I {input}" if isinstance(input, str) else "-I " + " -I ".join(input)
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.benchmark"
+    priority: 1004
     shell:
         """
         gatk MergeSamFiles \
@@ -284,118 +264,64 @@ rule GATK_MERGE:
              &>> {log}
         """
 
+rule BAM2CRAM:
+    input:
+        merge = rules.GATK_MERGE.output,
+        bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
+    output:
+        cram = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram",
+        ref_md5 = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.ref.md5",
+        readme = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/CRAM_README.txt",
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.log"
+    singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
+    threads: 1
+    resources:
+        runtime = 240,
+        slurm_partition = "cpu_short",
+        mem_mb = 4000,
+    benchmark: "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
+    priority: 1005
+    shell:
+        """
+        md5sum {input.bwa_idxbase} > {output.ref_md5};
+        echo    'This CRAM was generated using the fasta file located at {input.bwa_idxbase}. The md5 hash of the reference is at {output.ref_md5}. \
+                The matching reference fasta at the specified directory is REQUIRED for proper decompression of the file' > {output.readme};
+        samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log};
+        """
+
+
 rule INDEX_GATKMERGE:
     ## Index the merge
     input:
-        rules.GATK_MERGE.output
+        rules.BAM2CRAM.output.cram
     output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.bai"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.crai"
     log:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.log"
     singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
     resources:
         runtime = 240,
         slurm_partition = "cpu_short"
-    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bai.benchmark"
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.crai.benchmark"
+    priority: 1006
     shell:
         "samtools index {input} &>> {log}"
 
 rule GATK_BAM_DONE:
     input:
-        rules.GATK_MERGE.output,
+        rules.BAM2CRAM.output,
         rules.INDEX_GATKMERGE.output,
     output:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.done"
     log:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.log"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.log"
     params:
         db = config["db"]
     resources:
         runtime = 10,
         slurm_partition = "cpu_short",
+    priority: 1007
     shell:
         "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input} >> {log}; touch {output}"
 
-rule all_at_once:
-    input:
-        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = config["db"]),
-        bwa_idxbase = lambda wildcards: ALN_REFERENCES["hg19"],
-        fa_base = lambda wildcards: FA_PATHS["hg19"],
-    output:
-        ubam = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.bam"),
-        obam = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.bam"),
-        adaptmetrics = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.metrics"),
-        abam = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.bam"),
-        dupsflagged = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.dupsflagged.bam"),
-        dupmetrics = temp(TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.dupsflagged.bam.metrics"),
-        finalbam = "/gpfs/data/petljaklab/lculibrk_prj/misc/studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.dupsflagged.bam",
-    singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
-    benchmark: "/gpfs/data/petljaklab/lculibrk_prj/misc/studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/benchmark.file"
-    resources:
-        threads = ALIGN_THREADS,
-        cpus = ALIGN_THREADS,
-        mem_mb = 5000,
-        runtime = 10,
-        slurm_partition = "cpu_dev"
-    params:
-        tmpdir = TEMP_DIR,
-        tmp = lambda wildcards: os.path.join(TEMP_DIR, wildcards.analysis),
-        align_threads = ALIGN_THREADS - 2,
-    log:
-        ubam = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.bam.log",
-        markadapts = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.bam.log",
-        samtofastq = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.samtofastq.log",
-        bwa = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.bwa.log",
-        mergebamalignment = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.mergebamalignment.log",
-        markdups = TEMP_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/hg19/aligned.dupsflagged.log",
-    shell:
-        """
-        mkdir -p {params.tmp}
-        gatk FastqToSam \
-            --FASTQ {input[0]} \
-            --FASTQ2 {input[1]} \
-            --OUTPUT {output.ubam} \
-            --READ_GROUP_NAME {wildcards.run} \
-            --SAMPLE_NAME {wildcards.sample} \
-            --LIBRARY_NAME {wildcards.run} \
-            --PLATFORM ILLUMINA &> {log.ubam};
-        gatk MarkIlluminaAdapters \
-            -I {output.ubam} \
-            -O {output.obam} \
-            -M {output.adaptmetrics} \
-            -TMP_DIR {params.tmp} &> {log.markadapts}
-        gatk SamToFastq \
-            -I {output.ubam} \
-            -FASTQ /dev/stdout \
-            -CLIPPING_ATTRIBUTE XT -CLIPPING_ACTION 2 -INTERLEAVE true -NON_PF true \
-            -TMP_DIR {params.tmp} 2> {log.samtofastq} | \
-        bwa mem -M -t {params.align_threads} -p {input.bwa_idxbase} /dev/stdin 2> {log.bwa} | \
-        gatk MergeBamAlignment \
-            -ALIGNED_BAM /dev/stdin \
-            -UNMAPPED_BAM {output.ubam} \
-            -OUTPUT {output.abam} \
-            -R {input.fa_base} -CREATE_INDEX true -ADD_MATE_CIGAR true \
-            -CLIP_ADAPTERS false -CLIP_OVERLAPPING_READS true \
-            -INCLUDE_SECONDARY_ALIGNMENTS true -MAX_INSERTIONS_OR_DELETIONS -1 \
-            -PRIMARY_ALIGNMENT_STRATEGY MostDistant -ATTRIBUTES_TO_RETAIN XS \
-            -TMP_DIR {params.tmp} 2> {log.mergebamalignment};
-        gatk MarkDuplicatesSpark \
-            -I {output.abam} \
-            -O {output.dupsflagged} \
-            -M {output.dupmetrics} \
-            --conf 'spark.executor.cores={resources.threads}' \
-            --conf 'spark.local.dir={params.tmpdir}' &> {log.markdups};
-        cp {output.dupsflagged} {output.finalbam};
-        cp {params.tmpdir}studies/*/samples/*/runs/*/analyses/GATK_BAM/*/bam/*.log /gpfs/data/petljaklab/lculibrk_prj/misc/studies/{wildcards.study}/samples/{wildcards.sample}/runs/{wildcards.run}/analyses/GATK_BAM/{wildcards.analysis}/;
-        cp {params.tmpdir}studies/*/samples/*/runs/*/analyses/GATK_BAM/*/bam/hg19/*.log /gpfs/data/petljaklab/lculibrk_prj/misc/studies/{wildcards.study}/samples/{wildcards.sample}/runs/{wildcards.run}/analyses/GATK_BAM/{wildcards.analysis}/;
-        """
-#rule copy_files:
-#    ## Copy to production path
-#    input:
-#        bam = rules.GATK_MERGE.output,
-#        bai = rules.INDEX_GATKMERGE.output,
-#    output:
-#        bam = PROD_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam",
-#        bai = PROD_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.bam.bai"
-#    shell:
-#        "rsync {input.bam} {output.bam}; rsync {input.bai} {output.bai}"
