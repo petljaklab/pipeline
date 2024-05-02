@@ -21,7 +21,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
     #print(given_id)
     
     id_dict = petljakapi.select.parent_ids(in_id = given_id, db = db)
-    print(id_dict)
+    #print(id_dict)
     ## Determine what the analysis needs to find in the dict
     deps = db_deps[analysis_name]
     if not all(elem in id_dict.keys() for elem in deps):
@@ -56,19 +56,32 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
         ## Index 0 is the id
         INPIPE = "GATK_BAM"
         table_id = entry[0][0]
-        end_path = ["merge/hg19/merged.bam", "merge/hg19/merged.bam.bai", "merge/hg19/merged.done"]
+        end_path = ["merge/hg19/merged.cram", "merge/hg19/merged.cram.crai", "merge/hg19/merged.done"]
         path_prefix = prod_dir
     elif analysis_name == "MUTECT":
         ## Select the entry of the relevant sample table
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
         table_id = entry[0][0]
-        end_path = ["mutect2/hg19/variants.vcf"]
-        path_prefix = prod_dir
         cell_id = entry[0][6]
-        if cell_id is not None or "NULL":
+        parent_id = entry[0][5]
+        if cell_id is not None and cell_id != "NULL":
             INPIPE = "MUTECT_CELLLINE"
         else:
             raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
+        if parent_id is not None and parent_id != "NULL":
+            end_path = ["mutect2/hg19/germ/filtered.vcf",
+                        "mutect2/hg19/std/filtered.vcf"]
+        else:
+            end_path = ["mutect2/hg19/parental/table_raw.txt"]
+        #print(end_path)
+        path_prefix = prod_dir
+
+    elif analysis_name == "LOAD_EXTERNAL_BAM":
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        table_id = entry[0][0]
+        end_path = ["db_load_runs/runs.loaded"]
+        path_prefix = scratch_dir
+        INPIPE = "LOAD_EXT_BAM"
     elif analysis_name == "EXTERNAL_BAM":
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
         table_id = entry[0][0]

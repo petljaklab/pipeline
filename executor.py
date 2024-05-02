@@ -28,7 +28,7 @@ parser.add_argument("--cell_id", required=False)
 
 script_args, unknown = parser.parse_known_args()
 
-print(script_args.id)
+#print(script_args.id)
 
 ## Parse IDs
 if script_args.id is not None:
@@ -76,7 +76,7 @@ for i in id:
 
 #analysis_path = lib.input_functions.gateway(analysis_name=script_args.pipeline, given_id=id[0], scratch_dir = config["SCRATCH_DIR"], prod_dir = config["PROD_DIR"], db = config["db"])
 
-print(unknown)
+#print(unknown)
 
 snakemake.main(argv = unknown)
 #snakemake.snakemake(snakefile="./Snakefile", dryrun = True, targets = analysis_path)
