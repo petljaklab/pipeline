@@ -45,7 +45,7 @@ rule UBAM:
     resources:
         runtime = 240,
         iotasks = 2,
-        slurm_partition = "cpu_dev"
+        slurm_partition = "cpu_short"
     params:
         TEMP_DIR = TEMP_DIR,
         TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
@@ -78,7 +78,7 @@ rule MARK_ADAPTERS:
     resources:
         runtime = 240,
         iotasks = 2,
-        slurm_partition = "cpu_dev,cpu_short,fn_short"
+        slurm_partition = "cpu_short,fn_short"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     priority: 1000
     shell:
@@ -107,7 +107,7 @@ rule MARKED_SAM_TO_FASTQ:
     resources:
         runtime = 480,
         iotasks = 2,
-        slurm_partition = "cpu_dev,cpu_short,fn_short"
+        slurm_partition = "cpu_short,fn_short"
     priority: 1001
     shell:
         """
@@ -270,6 +270,7 @@ rule BAM2CRAM:
         bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
     output:
         cram = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram",
+        crai = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.crai",
         ref_md5 = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.ref.md5",
         readme = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/CRAM_README.txt",
     log:
@@ -277,7 +278,7 @@ rule BAM2CRAM:
     singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
     threads: 1
     resources:
-        runtime = 240,
+        runtime = 480,
         slurm_partition = "cpu_short",
         mem_mb = 4000,
     benchmark: "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
@@ -287,31 +288,14 @@ rule BAM2CRAM:
         md5sum {input.bwa_idxbase} > {output.ref_md5};
         echo    'This CRAM was generated using the fasta file located at {input.bwa_idxbase}. The md5 hash of the reference is at {output.ref_md5}. \
                 The matching reference fasta at the specified directory is REQUIRED for proper decompression of the file' > {output.readme};
-        samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log};
+        samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log}
+        chmod 750 {output.cram};
+        samtools index {output.cram} &>> {log}
         """
-
-
-rule INDEX_GATKMERGE:
-    ## Index the merge
-    input:
-        rules.BAM2CRAM.output.cram
-    output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.crai"
-    log:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.log"
-    singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
-    resources:
-        runtime = 240,
-        slurm_partition = "cpu_short"
-    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.crai.benchmark"
-    priority: 1006
-    shell:
-        "samtools index {input} &>> {log}"
 
 rule GATK_BAM_DONE:
     input:
         rules.BAM2CRAM.output,
-        rules.INDEX_GATKMERGE.output,
     output:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.done"
     log:
