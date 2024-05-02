@@ -17,7 +17,16 @@ db_deps = {
     "EXTERNAL_BAM":[
         "studies",
         "samples"
+    ],
+    "LOAD_EXTERNAL_BAM":[
+        "studies",
+        "samples"
+    ],
+    "MUTECT_CELLLINE":[
+        "studies",
+        "samples"
     ]
+
 }
 
 ## Describes the endpoint of a pipeline
@@ -28,6 +37,7 @@ module_outputs = {
     "EGA":"FASTQ",
     "GATK_BAM":"WGS_MERGE_BAM",
     "MUTECT_CELLLINE":"MUTECT",
+    "LOAD_EXTERNAL_BAM":"LOAD_EXTERNAL_BAM",
     "EXTERNAL_BAM":"EXTERNAL_BAM"
 }
 
@@ -48,7 +58,8 @@ module_inputs = {
     "EGA":[],
     "GATK_BAM":["FASTQ"],
     "MUTECT_CELLLINE":["WGS_MERGE_BAM"],
-    "EXTERNAL_BAM":[]
+    "EXTERNAL_BAM":[],
+    "LOAD_EXTERNAL_BAM":[]
 }
 
 ## e.g. we can see that GATK_BAM requires a FASTQ module as input and outputs a WGS_MERGE_BAM
