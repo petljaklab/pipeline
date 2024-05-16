@@ -45,6 +45,7 @@ rule UBAM:
     resources:
         runtime = 240,
         iotasks = 2,
+        mem_mb = 3000,
         slurm_partition = "cpu_short"
     params:
         TEMP_DIR = TEMP_DIR,
@@ -77,6 +78,7 @@ rule MARK_ADAPTERS:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.benchmark"
     resources:
         runtime = 240,
+        mem_mb = 2000,
         iotasks = 2,
         slurm_partition = "cpu_short,fn_short"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
@@ -170,7 +172,7 @@ rule MERGEBAMALIGNMENT:
     resources:
         threads = 1,
         cpus = 1,
-        mem_mb = 10000,
+        mem_mb = 3000,
         iotasks = 4,
         slurm_partition = "cpu_medium,fn_medium"
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
@@ -204,9 +206,9 @@ rule GATK_MARKDUPS:
         TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
         TEMP_BAM_FILE = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/markdups/input.bam"
     resources:
-        threads = 1,
+        threads = 8,
         cpus = ALIGN_THREADS,
-        mem_mb = 20000,
+        mem_mb = 35000,
         iotasks = 4,
         slurm_partition = "cpu_medium,fn_medium",
         runtime = 60*24*3,
@@ -289,7 +291,7 @@ rule BAM2CRAM:
         echo    'This CRAM was generated using the fasta file located at {input.bwa_idxbase}. The md5 hash of the reference is at {output.ref_md5}. \
                 The matching reference fasta at the specified directory is REQUIRED for proper decompression of the file' > {output.readme};
         samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log}
-        chmod 750 {output.cram};
+        chmod 750 {output};
         samtools index {output.cram} &>> {log}
         """
 
