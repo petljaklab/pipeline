@@ -3,7 +3,7 @@
 rule MUTECT2_DAUGHTER_STANDARD:
     input:
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
-        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0],
+        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
         parent_merge = lambda wildcards: parent_cell(wildcards)
     output:
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/raw_{chrom}.vcf",
@@ -13,17 +13,18 @@ rule MUTECT2_DAUGHTER_STANDARD:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 5000,
+        mem_mb = 3500,
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short"
+        slurm_partition = "cpu_short",
+        att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/variants_{chrom}.resources",
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/variants_{chrom}.log"
     shell:
         """
-            NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout ) 2> {log}; \
+            NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout 2> {log}); \
             gatk Mutect2 -R {input.fa} \
                 -L {wildcards.chrom} \
                 -I {input.cell_merge} \
@@ -33,7 +34,7 @@ rule MUTECT2_DAUGHTER_STANDARD:
                 --germline-resource /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf \
                 --native-pair-hmm-threads 1 \
                 --f1r2-tar-gz {output.tgz} \
-                --output {output.vcf} &> {log}
+                --output {output.vcf} &>> {log}.{resources.att}
         """
 
 ##
@@ -41,7 +42,7 @@ rule MUTECT2_DAUGHTER_STANDARD:
 rule MUTECT2_DAUGHTER_GERMLINE_SITES:
     input:
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
-        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0],
+        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
         parent_merge = lambda wildcards: parent_cell(wildcards)
     output:
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/germ/raw_{chrom}.vcf",
@@ -51,17 +52,18 @@ rule MUTECT2_DAUGHTER_GERMLINE_SITES:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 5000,
+        mem_mb = 3500,
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short"
+        slurm_partition = "cpu_short",
+        att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/germ/variants_{chrom}.resources",
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/germ/variants_{chrom}.log"
     shell:
         """
-            NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout) 2> {log}; \
+            NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout 2> {log}) ; \
             gatk Mutect2 -R {input.fa} \
                 -L {wildcards.chrom} \
                 -I {input.cell_merge} \
@@ -72,7 +74,7 @@ rule MUTECT2_DAUGHTER_GERMLINE_SITES:
                 --germline-resource /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf \
                 --native-pair-hmm-threads 1 \
                 --f1r2-tar-gz {output.tgz} \
-                --output {output.vcf} &> {log}
+                --output {output.vcf} &>> {log}.{resources.att}
         """
 
 ##
@@ -80,7 +82,7 @@ rule MUTECT2_DAUGHTER_GERMLINE_SITES:
 rule MUTECT2_PARENTAL_FORCE_SITES:
     input:
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
-        merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0],
+        merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
         daughter_vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/daughters_merged_vcf/{chrom}.vcf",
     output:
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/parental/raw_{chrom}.vcf",
@@ -90,10 +92,11 @@ rule MUTECT2_PARENTAL_FORCE_SITES:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 5000,
+        mem_mb = 3500,
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short"
+        slurm_partition = "cpu_short",
+        att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/parental/variants_{chrom}.resources",
     log:
@@ -110,6 +113,6 @@ rule MUTECT2_PARENTAL_FORCE_SITES:
                 --germline-resource /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf \
                 --native-pair-hmm-threads 1 \
                 --f1r2-tar-gz {output.tgz} \
-                --output {output.vcf} &> {log}
+                --output {output.vcf} &> {log}.{resources.att}
         """
 

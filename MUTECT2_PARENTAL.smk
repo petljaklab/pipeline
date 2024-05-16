@@ -18,7 +18,7 @@ rule COPY_RENAME_DAUGHTER_CALLS:
         grep '##' {input} > {output} 2> {log};
         TUMOR_NAME=$(grep '##tumor_sample' {input} | sed 's/##tumor_sample=//g');
         column_number=$(awk -v search="$TUMOR_NAME" -F'\\t' '{{ for (i=1; i<=NF; i++) {{ if ($i == search) {{ print i; exit }} }} }}' {input})
-        grep -v '##' {input} | cut -f 1,2,3,4,5,6,7,8,9,$column_number | awk -v OFS="\\t" 'NR==1{{print $1, $2, $3, $4, $5, $6, $7, $8, $9, "daughter"}}NR>1{{print $0}}' | awk -v OFS="\\t" 'length($4) <= 150 && length($5) <= 150{{print $0}}' >> {output} 2>> {log}
+        grep -v '##' {input} | cut -f 1,2,3,4,5,6,7,8,9,$column_number | awk -v OFS="\\t" 'NR==1{{print $1, $2, $3, $4, $5, $6, $7, $8, $9, "daughter"}}NR>1{{print $0}}' | awk -v OFS="\\t" 'length($4) <= 50 && length($5) <= 50{{print $0}}' >> {output} 2>> {log}
         """    
 
 def all_daughter_calls_function(wildcards):
@@ -33,9 +33,9 @@ def all_daughter_calls_function(wildcards):
         gateway("MUTECT", petljakapi.translate.idtostring(daught_id, "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb")
         ## Now we need the relevant analysis ID for the daughter sample
         analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"MUTECT_CELLLINE", "samples_id":daught_id})
-        
         p = analysis[0][10]
-        vcf_path = os.path.join(p, petljakapi.translate.idtostring(analysis[0][0], "MPA"), "mutect2", wildcards.reference, "germ", f"renamed_{wildcards.chrom}.vcf")
+        chromstring = "renamed_" + str(wildcards.chrom) + ".vcf"
+        vcf_path = os.path.join(p, petljakapi.translate.idtostring(analysis[0][0], "MPA"), "mutect2", wildcards.reference, "germ", chromstring)
         paths.append(vcf_path)
     return(paths)
 

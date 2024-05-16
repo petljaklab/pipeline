@@ -15,7 +15,7 @@ def parent_cell(wildcards):
     db_line = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "id", filter_value = sample_id)
     #print(db_line)
     parent_id = petljakapi.translate.idtostring(db_line[0][5], "MPS")
-    parent_merge = gateway("WGS_MERGE_BAM", parent_id, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0]
+    parent_merge = gateway("WGS_MERGE_BAM", parent_id, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0]
     return(parent_merge)
 
 rule MUTECT2_CELLLINE_VCFTOTABLE:
@@ -88,6 +88,93 @@ def parent_sample_id(wildcards):
     #print(db_line)
     parent_id = petljakapi.translate.idtostring(db_line[0][5], "MPS")
     return(parent_id)
+
+def full_cell_line_cohort(wildcards):
+    study_id = petljakapi.translate.stringtoid(wildcards.study)
+    samples_ids = petljakapi.select.multi_select(db, "samples", {"study_id":study_id})
+    o_list = []
+    for sample in samples_ids:
+        o_list.extend(gateway("MUTECT", petljakapi.translate.idtostring(sample[0], "MPS"), scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = db))
+    return(o_list)
+    
+rule M2_SBS_TABLES:
+    output:
+        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/daughters_table.txt",
+        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/parents_table.txt",
+    threads: 1
+    resources:
+        slurm_partition = "cpu_dev",
+        cpus = 1,
+        threads = 1,
+        mem_mb = 2000,
+        runtime = 15,
+    run:
+        if not os.path.exists(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/"):
+            os.makedirs(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/")
+        study_id = petljakapi.translate.stringtoid(wildcards.study)
+        samples_ids = petljakapi.select.multi_select(db, "samples", {"study_id":study_id})
+        for sample in samples_ids:
+            cell_name = petljakapi.select.multi_select(db, "cells", {"id":sample[6]})[0][1]
+            files = gateway("MUTECT", petljakapi.translate.idtostring(sample[0], "MPS"), scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = db)
+            if len(files) == 1: ## Parental
+                with open(output.parental, "a") as f:
+                    f.write("%s\n" % '\t'.join([files[0], sample[1], cell_name]))
+            elif len(files) == 2: ## daughter
+                parent_id = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "id", filter_value = sample[0])[0][5]
+                parent_name = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "id", filter_value = parent_id)[0][1]
+                with open(output.daughter, "a") as f:
+                    f.write("%s\n" % '\t'.join([files[0], files[1], sample[1], parent_name, cell_name]))
+
+rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
+    input:
+        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/daughters_table.txt",
+        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/parents_table.txt",
+        data = full_cell_line_cohort
+    output:
+        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering_done.txt"
+    resources:
+        mem_mb = 150000,
+        slurm_partition = "fn_short",
+        threads = 4,
+        cpus = 4,
+        runtime = 480,
+    params:
+        script_path = MUTECT_CELLLINE_PATH + "/scripts/filter_mutations.R"
+    log:
+        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering.log"
+    shell:
+        """
+        module load r/4.1.2;
+        Rscript {params.script_path} -d {input.daughter} -p {input.parental} 2> {log};
+        touch {output};
+        """
+
+rule CELLLINE_OF_ORIGIN:
+    input:
+        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
+        FA = lambda wildcards: FA_PATHS[wildcards.reference],
+    output:
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.vcf",
+        tbl1 =SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.txt",
+        tbl2 =SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/line_of_origin.txt",
+    singularity:
+        "/gpfs/data/petljaklab/containers/bcftools/bcftools_latest.sif"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.log",
+    resources:
+        slurm_partition = "cpu_short",
+        runtime = 240,
+        mem_mb = 3000
+    shell:
+        """
+        bcftools mpileup \
+         -R /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt \
+         --fasta-ref {input.FA} \
+         -A {input.cell_merge} 2> {log} | bcftools call -c 2>> {log} > {output.vcf};
+        gatk VariantsToTable -V {output.vcf} -O {output.tbl1} 2>> {log};
+        module load r/4.1.2;
+        cat {output.tbl1} | Rscript scripts/parse_variants.R > {output.tbl2} 2>> {log}
+        """
 
 rule MUTECT2_CELLLINE_PAIRED_FILTER:
     input:

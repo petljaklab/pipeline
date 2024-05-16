@@ -1,6 +1,6 @@
 rule PILEUP_SUMMARIES:
     input:
-        BAM = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb_devel")[0],
+        BAM = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
     output:
         SUMMARY = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/pileup.txt",
