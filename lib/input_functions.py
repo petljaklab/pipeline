@@ -69,13 +69,25 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
         else:
             raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
         if parent_id is not None and parent_id != "NULL":
-            end_path = ["mutect2/hg19/germ/filtered.vcf",
-                        "mutect2/hg19/std/filtered.vcf"]
+            end_path = ["mutect2/hg19/std/table_raw.txt",
+                        "mutect2/hg19/germ/table_raw.txt",
+                        ]
         else:
             end_path = ["mutect2/hg19/parental/table_raw.txt"]
         #print(end_path)
         path_prefix = prod_dir
-
+    elif analysis_name == "INDEL":
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        table_id = entry[0][0]
+        parent_id = entry[0][5]
+        if parent_id is None:
+            print(f"Calling indels without matched normal is not supported. Skipping sample {id_dict[terminal_dep]}")
+            return()
+        end_path = ["hg19/mutect2/indels.vcf",
+                    "hg19/varscan2/indels.vcf",
+                    "hg19/strelka2/indels.vcf"]
+        path_prefix = prod_dir
+        INPIPE = "INDEL"
     elif analysis_name == "LOAD_EXTERNAL_BAM":
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
         table_id = entry[0][0]
@@ -87,7 +99,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
         table_id = entry[0][0]
         end_path = ["splitfq/split.done"]
         path_prefix = scratch_dir
-        INPIPE = "EXTERNAL_BAM"
+        INPIPE = "EXTERNAL_BAM"             
     else:
         raise ValueError(f"Handling of {analysis_name} not yet supported")
     ## Now we construct the input file to make

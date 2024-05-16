@@ -1,6 +1,6 @@
 
 .snakemake/
-
+.gitignore
 lib/__pycache__/
 modules/__pycache__/
 ERR*/
@@ -15,3 +15,4 @@ sample_batches/
 credentials_files/ega_credentials.txt
 logs/BC-1.log logs/BT-474.log logs/cell.txt logs/HT-1376.log logs/JSC-1.log logs/MDA-MB-453.log logs/MPS000257.out
 logs/
+test*

@@ -18,6 +18,7 @@ include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
 include: os.path.join(basedir, "modules/MUTECT_CELLLINE/MUTECT_CELLLINE.smk")
 include: os.path.join(basedir, "modules/EXTERNAL_BAM/EXTERNAL_BAM.smk")
 include: os.path.join(basedir, "modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk")
+include: os.path.join(basedir, "modules/INDEL/INDEL.smk")
 
 #{prod_dir} OR {scratch_dir}/
 #   └──studies/
