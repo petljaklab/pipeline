@@ -41,7 +41,7 @@ rule varscan2:
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
     output:
         tmpfile = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/output.indel.vcf"),
-        realout = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.vcf"
+        #realout = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.vcf"
     threads: 1
     resources:
         threads = 1,
@@ -53,7 +53,7 @@ rule varscan2:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.log"
     params:
-        outpath = lambda wildcards: SCRATCH_DIR + "studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/varscan2/output",
+        outpath = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/varscan2/output",
     shell:
         """
         java -jar /varscan2/VarScan.v2.4.6.jar somatic <(samtools mpileup -q 10 -f {input.fa} {input.parent_merge}) \
@@ -77,9 +77,9 @@ rule makeStrelkaWorkflow:
         slurm_partition = "cpu_dev",
         mem_mb = 8000
     params:
-        odir = lambda wildcards: SCRATCH_DIR + "studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/strelka2/"
+        odir = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/strelka2/"
     log:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/strelka2/log.txt"
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/strelka_log.txt"
     shell:
         """
         rm -rf {params.odir}
@@ -100,17 +100,90 @@ rule runStrelka2:
     resources:
         threads = 12,
         cpus = 12,
-        runtime = 60*6,
-        slurm_partition = "cpu_medium",
-        mem_mb = 10000
+        runtime = 60*12,
+        slurm_partition = "cpu_short",
+        mem_mb = 5000
     singularity: 
         "/gpfs/data/petljaklab/containers/strelka2/strelka2_2.9.10.sif"
     benchmark: 
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/strelka2/benchmark.txt"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/strelka2/log.txt"
+    params:
+        workspacedir = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/strelka2/workspace/"
     shell:
         """
-        ./{input} -j {threads} -m local 2>> {log};
+        rm -rf {params.workspacedir};
+        {input} -j {threads} -m local 2>> {log};
         gunzip -c {output.tmpout} > {output.realout} 2>> {log}
         """
+
+rule varscan2_split:
+## TODO: change the parent/cell stuff to something that works for either cells or patients
+    input:
+        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
+        parent_merge = lambda wildcards: parent_cell(wildcards),
+        fa = lambda wildcards: FA_PATHS[wildcards.reference],
+    output:
+        tmpfile = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/{chrom}/output.indel.vcf",
+    threads: 1
+    resources:
+        threads = 1,
+        cpus = 1,
+        runtime = 60*12,
+        slurm_partition = "cpu_short",
+        mem_mb = 2000
+    singularity: "/gpfs/data/petljaklab/containers/varscan2/varscan2_2.4.6.sif"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/{chrom}/indels.log"
+    params:
+        outpath = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/varscan2/{wildcards.chrom}/output",
+    shell:
+        """
+        java -jar /varscan2/VarScan.v2.4.6.jar somatic <(samtools mpileup -r {wildcards.chrom} -q 10 -f {input.fa} {input.parent_merge}) \
+                                                       <(samtools mpileup -r {wildcards.chrom} -q 10 -f {input.fa} {input.cell_merge}) \
+                                                       {params.outpath} \
+                                                       --output-vcf \
+                                                       2> {log}
+        """
+
+rule merge_varscan_runs:
+    input:
+        lambda wildcards: expand(SCRATCH_DIR + "studies/{{study}}/samples/{{sample}}/analyses/INDEL/{{analysis}}/{{reference}}/varscan2/{chrom}/output.indel.vcf", chrom = chromosomes[wildcards.reference])
+    output:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.vcf"
+    threads: 1
+    resources:
+        threads = 1,
+        cpus = 1,
+        runtime = 60,
+        slurm_partition = "cpu_dev",
+        mem_mb = 10000,
+    log: 
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.log"
+    singularity:
+        f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
+    params:
+        dic = lambda wildcards: re.sub("\\.fa$", ".dict", FA_PATHS[wildcards.reference]),
+        inputlist = lambda wildcards, input: " -I ".join([input]) if isinstance(input, str) else " -I ".join(input)
+    shell:
+        "gatk MergeVcfs -D {params.dic} -I {params.inputlist} -O {output} &> {log}"
+
+rule vcf_to_table:
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/{tool}/indels.vcf",
+    output:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/{tool}/indels.txt",
+    threads: 1
+    resources:
+        threads = 1,
+        cpus = 1,
+        runtime = 5,
+        slurm_partition = "cpu_dev",
+        mem_mb = 5000,
+    singularity:
+        f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
+    log: 
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/{tool}/indels.log"
+    shell:
+        "gatk VariantsToTable -V {input} -O {output} -raw &>> {log}"
