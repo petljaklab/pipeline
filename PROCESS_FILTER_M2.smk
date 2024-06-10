@@ -36,7 +36,7 @@ rule COMBINE_MUTECT2_CELLLINE_VCFS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/merge_vcf.log"
     resources:
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_dev",
         runtime = 240,
         mem_mb = 3000
     shell:
@@ -54,7 +54,7 @@ rule MERGE_MUTECT2_CELLLINE_STATS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/stats.log",
     resources:
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_dev",
         runtime = 240,
         mem_mb = 3000
     shell:
@@ -75,7 +75,7 @@ rule MUTECT2_CELLLINE_READ_ORIENTATION:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/read_orientation_model.log",
     resources:
         mem_mb = 3000,
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_dev",
         runtime = 60 * 4,
     params:
         inputlist = lambda wildcards, input: " -I ".join([input]) if isinstance(input, str) else " -I ".join(input.files)
@@ -121,8 +121,8 @@ rule MUTECT2_CELLLINE_FILTERMUTECTCALLS:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered.log"
     resources:
         mem_mb = 5000,
-        slurm_partition = "cpu_short",
-        runtime = 360,
+        slurm_partition = "cpu_dev",
+        runtime = 240,
     shell:
         """
         gatk FilterMutectCalls -V {input.raw} \

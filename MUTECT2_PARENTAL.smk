@@ -18,8 +18,33 @@ rule COPY_RENAME_DAUGHTER_CALLS:
         grep '##' {input} > {output} 2> {log};
         TUMOR_NAME=$(grep '##tumor_sample' {input} | sed 's/##tumor_sample=//g');
         column_number=$(awk -v search="$TUMOR_NAME" -F'\\t' '{{ for (i=1; i<=NF; i++) {{ if ($i == search) {{ print i; exit }} }} }}' {input})
-        grep -v '##' {input} | cut -f 1,2,3,4,5,6,7,8,9,$column_number | awk -v OFS="\\t" 'NR==1{{print $1, $2, $3, $4, $5, $6, $7, $8, $9, "daughter"}}NR>1{{print $0}}' | awk -v OFS="\\t" 'length($4) <= 50 && length($5) <= 50{{print $0}}' >> {output} 2>> {log}
+        grep -v '##' {input} | cut -f 1,2,3,4,5,6,7,8,9,$column_number | awk -v OFS="\\t" 'NR==1{{print $1, $2, $3, $4, $5, $6, $7, $8, $9, "daughter"}}NR>1 && length($4) == 1 && length($5) == 1{{print $0}}' >> {output} 2>> {log}
         """    
+
+rule RENAME_SAMPLES_VCF:
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered.vcf",
+    output:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered_renamed.vcf",
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered_renamed.log",
+    resources:
+        slurm_partition = "cpu_dev",
+        runtime = 10,
+        mem_mb = 1000
+    shell:
+        """
+        set +o pipefail;
+        TUMOR_NAME=$( grep '##tumor_sample' {input} | sed 's/##tumor_sample=//g');
+        NORMAL_NAME=$(grep '##normal_sample' {input} | sed 's/##normal_sample=//g');
+        grep '##' {input} > {output}
+        if [ ! -z $NORMAL_NAME ]; then
+            grep '#CHROM' {input} | sed "s/$TUMOR_NAME/tumor/g" | sed "s/$NORMAL_NAME/normal/g" >> {output};
+        elif [ -z $NORMAL_NAME ]; then
+            grep '#CHROM' {input} | sed "s/$TUMOR_NAME/tumor/g" >> {output};
+        fi
+        grep -v '#' {input} >> {output}
+        """
 
 def all_daughter_calls_function(wildcards):
     ## Function to take in wildcards (ie. the sample) and output a list of all the daughter calls as renamed above
@@ -44,7 +69,7 @@ rule COMBINE_MUTECT2_CELLLINE_DAUGHTER_CALLS:
     input:
         all_daughter_calls_function
     output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/daughters_merged_vcf/{chrom}.vcf"
+        f = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/daughters_merged_vcf/{chrom}.vcf"
     singularity:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
@@ -57,4 +82,6 @@ rule COMBINE_MUTECT2_CELLLINE_DAUGHTER_CALLS:
     params:
         inputlist = lambda wildcards, input: " -I ".join([input]) if isinstance(input, str) else " -I ".join(input)
     shell:
-        "gatk MergeVcfs -I {params.inputlist} -O {output} &> {log}"
+        """
+        gatk MergeVcfs -I {params.inputlist} -O {output.f} &> {log}
+        """

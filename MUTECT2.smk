@@ -92,10 +92,10 @@ rule MUTECT2_PARENTAL_FORCE_SITES:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 3500,
+        mem_mb = 8500,
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_medium",
         att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/parental/variants_{chrom}.resources",

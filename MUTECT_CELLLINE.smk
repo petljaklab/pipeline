@@ -20,12 +20,12 @@ def parent_cell(wildcards):
 
 rule MUTECT2_CELLLINE_VCFTOTABLE:
     input:
-        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered.vcf",
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered_renamed.vcf",
     output:
         tab = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/table_raw.txt"
     resources:
         mem_mb = 3000,
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_dev",
         runtime = 60 * 4,
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/table.log"
@@ -132,6 +132,7 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
         data = full_cell_line_cohort
     output:
         SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering_done.txt"
+    threads: 4
     resources:
         mem_mb = 150000,
         slurm_partition = "fn_short",
@@ -145,7 +146,7 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
     shell:
         """
         module load r/4.1.2;
-        Rscript {params.script_path} -d {input.daughter} -p {input.parental} 2> {log};
+        Rscript {params.script_path} -d {input.daughter} -p {input.parental} -t {resources.threads} 2> {log};
         touch {output};
         """
 
@@ -162,7 +163,7 @@ rule CELLLINE_OF_ORIGIN:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.log",
     resources:
-        slurm_partition = "cpu_short",
+        slurm_partition = "cpu_dev",
         runtime = 240,
         mem_mb = 3000
     shell:
@@ -173,7 +174,7 @@ rule CELLLINE_OF_ORIGIN:
          -A {input.cell_merge} 2> {log} | bcftools call -c 2>> {log} > {output.vcf};
         gatk VariantsToTable -V {output.vcf} -O {output.tbl1} 2>> {log};
         module load r/4.1.2;
-        cat {output.tbl1} | Rscript scripts/parse_variants.R > {output.tbl2} 2>> {log}
+        cat {output.tbl1} | Rscript scripts/qc_identity.R > {output.tbl2} 2>> {log}
         """
 
 rule MUTECT2_CELLLINE_PAIRED_FILTER:
