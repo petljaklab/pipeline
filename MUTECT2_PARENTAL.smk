@@ -9,7 +9,7 @@ rule COPY_RENAME_DAUGHTER_CALLS:
         threads = 1,
         mem_mb = 5000,
         runtime = 15,
-        slurm_partition = "cpu_dev"
+        slurm_partition = "petljaklab,cpu_dev"
     shell:
     ## First copy over the header
     ## Next, grep out the header, cut out the parental column, then use awk to rename the daughter column to {parental-sample-name}_d, then remove variants with ref/alt length longer than the reads
@@ -29,7 +29,7 @@ rule RENAME_SAMPLES_VCF:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered_renamed.log",
     resources:
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 10,
         mem_mb = 1000
     shell:
@@ -49,7 +49,7 @@ rule RENAME_SAMPLES_VCF:
 def all_daughter_calls_function(wildcards):
     ## Function to take in wildcards (ie. the sample) and output a list of all the daughter calls as renamed above
     ##
-    daughters = petljakapi.select.multi_select(db = db, table = "samples", filters = {"sample_parent_id":petljakapi.translate.stringtoid(wildcards.sample)})
+    daughters = petljakapi.select.multi_select(db = db, table = "samples", filters = {"sample_parent_id":petljakapi.translate.stringtoid(wildcards.sample)}, bench = config["bench"])
     paths = []
     for daughter in daughters:
         ## id
@@ -57,7 +57,7 @@ def all_daughter_calls_function(wildcards):
         ## Run gateway to ensure the analysis dir is created
         gateway("MUTECT", petljakapi.translate.idtostring(daught_id, "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb")
         ## Now we need the relevant analysis ID for the daughter sample
-        analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"MUTECT_CELLLINE", "samples_id":daught_id})
+        analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"MUTECT_CELLLINE", "samples_id":daught_id}, bench = config["bench"])
         p = analysis[0][10]
         chromstring = "renamed_" + str(wildcards.chrom) + ".vcf"
         vcf_path = os.path.join(p, petljakapi.translate.idtostring(analysis[0][0], "MPA"), "mutect2", wildcards.reference, "germ", chromstring)
@@ -76,7 +76,7 @@ rule COMBINE_MUTECT2_CELLLINE_DAUGHTER_CALLS:
         threads = 1,
         mem_mb = 5000,
         runtime = 15,
-        slurm_partition = "cpu_dev"
+        slurm_partition = "petljaklab,cpu_dev"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/daughters_merged_vcf/{chrom}.log"
     params:

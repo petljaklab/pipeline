@@ -13,10 +13,10 @@ rule MUTECT2_DAUGHTER_STANDARD:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 3500,
+        mem_mb = lambda wildcards, attempt: 4000 * (1 + ((attempt-1)/2)),
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_medium",
         att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/variants_{chrom}.resources",
@@ -25,7 +25,8 @@ rule MUTECT2_DAUGHTER_STANDARD:
     shell:
         """
             NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout 2> {log}); \
-            gatk Mutect2 -R {input.fa} \
+            gatk --java-options '-Xmx{resources.mem_mb}M' \
+                Mutect2 -R {input.fa} \
                 -L {wildcards.chrom} \
                 -I {input.cell_merge} \
                 -I {input.parent_merge} \
@@ -52,10 +53,10 @@ rule MUTECT2_DAUGHTER_GERMLINE_SITES:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 3500,
+        mem_mb = lambda wildcards, attempt: 4000 * (1 + ((attempt-1)/2)),
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_medium",
         att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/germ/variants_{chrom}.resources",
@@ -64,7 +65,8 @@ rule MUTECT2_DAUGHTER_GERMLINE_SITES:
     shell:
         """
             NORMAL_NAME=$(gatk GetSampleName -I {input.parent_merge} -R {input.fa} -O /dev/stdout 2> {log}) ; \
-            gatk Mutect2 -R {input.fa} \
+            gatk --java-options '-Xmx{resources.mem_mb}M' \
+                Mutect2  -R {input.fa} \
                 -L {wildcards.chrom} \
                 -I {input.cell_merge} \
                 -I {input.parent_merge} \
@@ -92,10 +94,10 @@ rule MUTECT2_PARENTAL_FORCE_SITES:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         threads = 1,
-        mem_mb = 8500,
+        mem_mb = lambda wildcards, attempt: 4000 * (1 + ((attempt-1)/2)),
         iotasks = 2,
         runtime = 24*60,
-        slurm_partition = "cpu_medium",
+        slurm_partition = "petljaklab,cpu_medium",
         att = lambda wildcards, attempt: attempt
     benchmark:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/parental/variants_{chrom}.resources",
@@ -103,7 +105,8 @@ rule MUTECT2_PARENTAL_FORCE_SITES:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/parental/variants_{chrom}.log"
     shell:
         """
-            gatk Mutect2 -R {input.fa} \
+            gatk --java-options '-Xmx{resources.mem_mb}M' \
+                Mutect2 -R {input.fa} \
                 -L {wildcards.chrom} \
                 -I {input.merge} \
                 --alleles {input.daughter_vcf} \

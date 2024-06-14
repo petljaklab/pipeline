@@ -12,7 +12,7 @@ rule PILEUP_SUMMARIES:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/pileup.benchmark",
     resources:
         mem_mb = 3000,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         runtime = 60 * 4,
     shell:
         """
@@ -36,7 +36,7 @@ rule COMBINE_MUTECT2_CELLLINE_VCFS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/merge_vcf.log"
     resources:
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 240,
         mem_mb = 3000
     shell:
@@ -54,7 +54,7 @@ rule MERGE_MUTECT2_CELLLINE_STATS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/stats.log",
     resources:
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 240,
         mem_mb = 3000
     shell:
@@ -75,7 +75,7 @@ rule MUTECT2_CELLLINE_READ_ORIENTATION:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/read_orientation_model.log",
     resources:
         mem_mb = 3000,
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 60 * 4,
     params:
         inputlist = lambda wildcards, input: " -I ".join([input]) if isinstance(input, str) else " -I ".join(input.files)
@@ -95,7 +95,7 @@ rule MUTECT2_CELLLINE_CALCULATE_CONTAMINATION:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     resources:
         mem_mb = 3000,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         runtime = 60 * 4,
     shell:
         """
@@ -121,7 +121,7 @@ rule MUTECT2_CELLLINE_FILTERMUTECTCALLS:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/filtered.log"
     resources:
         mem_mb = 5000,
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 240,
     shell:
         """
