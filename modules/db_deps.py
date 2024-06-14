@@ -1,6 +1,10 @@
 ## Probably this should all go in the database eventually but for now this is easier for prototyping
 
 db_deps = {
+    "SOMATIC": [
+        "studies",
+        "samples"
+    ],
     "FASTQ": [
         "studies",
         "samples",
@@ -36,6 +40,7 @@ db_deps = {
 ## Describes the endpoint of a pipeline
 ## Controlled vocabulary: [FASTQ, MERGE_BAM]
 module_outputs = {
+    "SOMATIC":"SOMATIC",
     "TESTS":"FASTQ",
     "SRA":"FASTQ",
     "EGA":"FASTQ",
