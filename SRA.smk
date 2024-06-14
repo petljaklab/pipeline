@@ -12,7 +12,7 @@ rule PREFETCH:
     resources:
         iotasks = 2,
         runtime = 700,
-        slurm_partition = "cpu_short,cpu_dev,fn_short"
+        slurm_partition = "petljaklab,cpu_short,cpu_dev,fn_short"
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}/{sra}.log"
     shell:
@@ -30,7 +30,7 @@ rule DUMP:
         TEMP_PATH = lambda wildcards: f"{TEMP_DIR}{wildcards.sra}/"
     resources:
         iotasks = 2,
-        slurm_partition = "cpu_short,cpu_dev,fn_short",
+        slurm_partition = "petljaklab,cpu_short,cpu_dev,fn_short",
         runtime = 700,
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
@@ -40,7 +40,7 @@ rule DUMP:
         """
 
 def sra_function(wildcards):
-    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "id", filter_value = petljakapi.translate.stringtoid(wildcards.run))
+    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "id", filter_value = petljakapi.translate.stringtoid(wildcards.run), bench = config["bench"])
     sra_id = result[0][6]
     if not sra_id or sra_id == "NULL":
         raise ValueError(f"SRA pipeline is being used, but run {wildcards.run} has no associated SRA ID in the database")
@@ -58,7 +58,7 @@ rule COPY_SRA:
         DB = db,
     resources:
         iotasks = 2,
-        slurm_partition = "cpu_short,cpu_dev,fn_short",
+        slurm_partition = "petljaklab,cpu_short,cpu_dev,fn_short",
         runtime = 700,
     shell:
         """
