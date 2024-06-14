@@ -1,6 +1,3 @@
-[submodule "modules/SRA"]
-	path = modules/SRA
-	url = https://github.com/petljaklab/SRA.git
 [submodule "modules/GATK_BAM"]
 	path = modules/GATK_BAM
 	url = https://github.com/petljaklab/GATK_BAM.git
