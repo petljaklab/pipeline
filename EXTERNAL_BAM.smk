@@ -9,7 +9,7 @@ def get_external_bam_path(wildcards):
     if wildcards.study == "MPP000003":
         basepath = "/gpfs/data/petljaklab/broad_data/bams/Bams/"
         iden = petljakapi.translate.stringtoid(wildcards.sample)
-        res = petljakapi.select.multi_select(db = db, table = "samples", filters = {"id":iden})[0]
+        res = petljakapi.select.multi_select(db = db, table = "samples", filters = {"id":iden}, bench = config["bench"])[0]
         rname = res[1]
         path = os.path.join(basepath, rname + ".bam")
     return(path)
@@ -22,7 +22,7 @@ def collate_output_fastqs(wildcards):
 
 def run_rname_to_rid(wildcards):
     sample_id = petljakapi.translate.stringtoid(wildcards.sample)
-    selection = petljakapi.select.multi_select(db = db, table = "runs", filters = {"sample_id":sample_id, "rname":wildcards.run})
+    selection = petljakapi.select.multi_select(db = db, table = "runs", filters = {"sample_id":sample_id, "rname":wildcards.run}, bench = config["bench"])
     return(selection[0][0])
 
 
@@ -42,7 +42,7 @@ rule SPLIT_BAM:
         cpus = 8,
         mem_mb = 8000,
         runtime = 240,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         iotasks = 5,
     shell:
         "samtools split {input} -f {output}/{wildcards.sample}-%#.%. -@ {resources.threads}"
@@ -51,7 +51,7 @@ def get_split_bam(wildcards):
     outs = checkpoints.SPLIT_BAM.get(**wildcards).output[0]
     ## Get sample ID
     rid = petljakapi.translate.stringtoid(wildcards.run)
-    rname = petljakapi.select.multi_select(db = db, table = "runs", filters = {"id":rid})[0][1]
+    rname = petljakapi.select.multi_select(db = db, table = "runs", filters = {"id":rid}, bench = config["bench"])[0][1]
     ## Use sample ID to get run ID & rname
     bamfile = os.path.join(outs, f"{rname}.bam")
     #print(bamfile)
@@ -75,9 +75,9 @@ rule EXTERNAL_BAM_TO_FASTQ:
         iotasks = 2,
         mem_mb = 20000,
         runtime = 600,
-        slurm_partition = "cpu_short"
+        slurm_partition = "petljaklab,cpu_short"
     params:
-        rname = lambda w: petljakapi.select.multi_select(db = db, table = "runs", filters = {"id":petljakapi.translate.stringtoid(w.run)})[0][1]
+        rname = lambda w: petljakapi.select.multi_select(db = db, table = "runs", filters = {"id":petljakapi.translate.stringtoid(w.run)}, bench = config["bench"])[0][1]
     priority: 1
     shell:
         "samtools collate -u -O {input}/{params.rname}.bam | samtools fastq -1 {output.reads1} -2 {output.reads2} -0 {output.readsU} -s {output.readsS} - &> {log};"

@@ -7,7 +7,7 @@ def get_external_bam_path(wildcards):
     if wildcards.study == "MPP000003":
         basepath = "/gpfs/data/petljaklab/broad_data/bams/Bams/"
         iden = petljakapi.translate.stringtoid(wildcards.sample)
-        res = petljakapi.select.multi_select(db = db, table = "samples", filters = {"id":iden})[0]
+        res = petljakapi.select.multi_select(db = db, table = "samples", filters = {"id":iden}, bench = config["bench"])[0]
         rname = res[1]
         path = os.path.join(basepath, rname + ".bam")
     return(path)
