@@ -25,6 +25,7 @@ group.add_argument('--id', help = "String IDs", nargs = "+", action = "extend")
 group.add_argument('--idfile', help = "List of IDs")
 parser.add_argument("--pipeline", help = "Analysis requested")
 parser.add_argument("--cell_id", required=False)
+parser.add_argument("--api_benchmark", action=argparse.BooleanOptionalAction, default = False)
 
 script_args, unknown = parser.parse_known_args()
 
@@ -69,8 +70,8 @@ for i in id:
     unknown.extend(analysis_path)
 
 
-
-
+if script_args.api_benchmark:
+    unknown.extend(["--config", "bench=True"])
 ## This is going to be the TESTS tp53 test for now
 # First get the analysis ID for what we're trying to make so we can construct it
 

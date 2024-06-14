@@ -24,6 +24,8 @@ FA_PATHS:
 
 db: "petljakdb"
 
+bench: False
+
 chromosomes:
   hg19: 
     - "1"

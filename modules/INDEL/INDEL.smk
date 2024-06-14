@@ -17,7 +17,7 @@ rule copy_m2_calls:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/mutect2/indels.vcf"
     threads: 1
     resources:
-        slurm_partition = "cpu_dev",
+        slurm_partition = "petljaklab,cpu_dev",
         runtime = 15,
         cpus = 1,
         threads = 1,
@@ -47,7 +47,7 @@ rule varscan2:
         threads = 1,
         cpus = 1,
         runtime = 60*24*5,
-        slurm_partition = "cpu_medium",
+        slurm_partition = "petljaklab,cpu_medium",
         mem_mb = 2000
     singularity: "/gpfs/data/petljaklab/containers/varscan2/varscan2_2.4.6.sif"
     log:
@@ -74,8 +74,8 @@ rule makeStrelkaWorkflow:
     singularity: "/gpfs/data/petljaklab/containers/strelka2/strelka2_2.9.10.sif"
     resources:
         runtime = 10,
-        slurm_partition = "cpu_dev",
-        mem_mb = 8000
+        slurm_partition = "petljaklab,cpu_dev",
+        mem_mb = 4000
     params:
         odir = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/INDEL/{wildcards.analysis}/{wildcards.reference}/strelka2/"
     log:
@@ -101,7 +101,7 @@ rule runStrelka2:
         threads = 12,
         cpus = 12,
         runtime = 60*12,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         mem_mb = 5000
     singularity: 
         "/gpfs/data/petljaklab/containers/strelka2/strelka2_2.9.10.sif"
@@ -131,7 +131,7 @@ rule varscan2_split:
         threads = 1,
         cpus = 1,
         runtime = 60*12,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         mem_mb = 2000
     singularity: "/gpfs/data/petljaklab/containers/varscan2/varscan2_2.4.6.sif"
     log:
@@ -157,8 +157,8 @@ rule merge_varscan_runs:
         threads = 1,
         cpus = 1,
         runtime = 60,
-        slurm_partition = "cpu_dev",
-        mem_mb = 10000,
+        slurm_partition = "petljaklab,cpu_dev",
+        mem_mb = 4000,
     log: 
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/varscan2/indels.log"
     singularity:
@@ -179,8 +179,8 @@ rule vcf_to_table:
         threads = 1,
         cpus = 1,
         runtime = 5,
-        slurm_partition = "cpu_dev",
-        mem_mb = 5000,
+        slurm_partition = "petljaklab,cpu_dev",
+        mem_mb = 4000,
     singularity:
         f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     log: 

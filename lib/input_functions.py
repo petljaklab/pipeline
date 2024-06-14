@@ -3,7 +3,7 @@ import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
-def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") -> list:
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", bench = False) -> list:
     """
     Creates a database entry for the requested analysis and returns the directory that will be used for that entry. 
 
@@ -31,9 +31,14 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
     terminal_dep = deps[-1]
     ## Handle fastq inputs
     ## Maybe to be replaced with a function for better readability
+    if analysis_name == "SOMATIC":
+        outlist = []
+        for pipe in ["MUTECT", "INDEL"]:
+            outlist.extend(gateway(pipe, given_id, scratch_dir, prod_dir, db))
+        return(outlist)
     if analysis_name == "FASTQ":
         ## Get the entry of the "run" table corresponding to the given ID
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         ## index 4 is the "source" column
         source = entry[0][4]
         table_id = entry[0][0]
@@ -52,7 +57,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
     ## Handle Merge inputs
     elif analysis_name == "WGS_MERGE_BAM":
         ## Select the entry of the relevant sample table
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         ## Index 0 is the id
         INPIPE = "GATK_BAM"
         table_id = entry[0][0]
@@ -60,7 +65,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
         path_prefix = prod_dir
     elif analysis_name == "MUTECT":
         ## Select the entry of the relevant sample table
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
         cell_id = entry[0][6]
         parent_id = entry[0][5]
@@ -68,17 +73,19 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
             INPIPE = "MUTECT_CELLLINE"
         else:
             raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
+        ## Test if this sample is used as a reference for any other samples
+        daughters = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "sample_parent_id", filter_value = table_id, bench = bench)
+        ## Init list of endpoints, beginning with line of origin (later will need to have another if-else block for biopsy vs cell lines to exclude this)
+        end_path = ["mutect2/hg19/proc/line_of_origin.txt"]
+        ## First, if we have a parent (ie this is a daughter line), need to add the correct endpoints for daughters
         if parent_id is not None and parent_id != "NULL":
-            end_path = ["mutect2/hg19/std/table_raw.txt",
-                        "mutect2/hg19/germ/table_raw.txt",
-                        "mutect2/hg19/proc/line_of_origin.txt"]
-        else:
-            end_path = ["mutect2/hg19/parental/table_raw.txt",
-                        "mutect2/hg19/proc/line_of_origin.txt"]
+            end_path.extend(["mutect2/hg19/proc/variants_final.vcf"])
+        if len(daughters) > 0: ## ie. if this is a parent
+            end_path.extend(["mutect2/hg19/parental/table_raw.txt"])
         #print(end_path)
         path_prefix = prod_dir
     elif analysis_name == "INDEL":
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
         parent_id = entry[0][5]
         if parent_id is None:
@@ -90,13 +97,13 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb") ->
         path_prefix = prod_dir
         INPIPE = "INDEL"
     elif analysis_name == "LOAD_EXTERNAL_BAM":
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
         end_path = ["db_load_runs/runs.loaded"]
         path_prefix = scratch_dir
         INPIPE = "LOAD_EXT_BAM"
     elif analysis_name == "EXTERNAL_BAM":
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]))
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
         end_path = ["splitfq/split.done"]
         path_prefix = scratch_dir

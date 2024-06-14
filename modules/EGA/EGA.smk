@@ -2,7 +2,7 @@ EGA_PIPE_VERSION = "1.0.0"
 EGA_CONFIG = "/gpfs/data/petljaklab/lculibrk_prj/pipeljak/credentials_files/ega_credentials.txt"
 
 def ega_function(wildcards):
-    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "id", filter_value = petljakapi.translate.stringtoid(wildcards.run))
+    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "id", filter_value = petljakapi.translate.stringtoid(wildcards.run), bench = config["bench"])
     ega_id = result[0][5]
     if not ega_id or ega_id == "NULL":
         raise ValueError(f"EGA pipeline is being used, but run {wildcards.run} has no associated EGA ID in the database")
