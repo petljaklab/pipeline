@@ -22,7 +22,7 @@ def aggregate_runs(wildcards) -> list:
     ## First get the numeric ID for sample
     sample_id = petljakapi.translate.stringtoid(wildcards.sample)
     ## API call for all the runs with that sample id
-    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "sample_id", filter_value = sample_id)
+    result = petljakapi.select.simple_select(db = db, table = "runs", filter_column = "sample_id", filter_value = sample_id, bench = config["bench"])
     ## If the sample isn't in the db, throw an error
     if not result:
         raise ValueError(f"No runs found for the requested sample {wildcards.sample}")
@@ -46,7 +46,7 @@ rule UBAM:
         runtime = 240,
         iotasks = 2,
         mem_mb = 3000,
-        slurm_partition = "cpu_short"
+        slurm_partition = "petljaklab,cpu_short"
     params:
         TEMP_DIR = TEMP_DIR,
         TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
@@ -80,7 +80,7 @@ rule MARK_ADAPTERS:
         runtime = 240,
         mem_mb = 2000,
         iotasks = 2,
-        slurm_partition = "cpu_short,fn_short"
+        slurm_partition = "petljaklab,cpu_short,fn_short"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     priority: 1000
     shell:
@@ -109,7 +109,7 @@ rule MARKED_SAM_TO_FASTQ:
     resources:
         runtime = 480,
         iotasks = 2,
-        slurm_partition = "cpu_short,fn_short"
+        slurm_partition = "petljaklab,cpu_short,fn_short"
     priority: 1001
     shell:
         """
@@ -134,7 +134,7 @@ rule BWA:
         cpus = ALIGN_THREADS,
         mem_mb = 30000,
         iotasks = 4,
-        slurm_partition = "cpu_medium,fn_medium",
+        slurm_partition = "petljaklab,cpu_medium,fn_medium",
         tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
         bwa = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.bwa.log",
@@ -174,7 +174,7 @@ rule MERGEBAMALIGNMENT:
         cpus = 1,
         mem_mb = 3000,
         iotasks = 4,
-        slurm_partition = "cpu_medium,fn_medium"
+        slurm_partition = "petljaklab,cpu_medium,fn_medium"
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.benchmark"
     priority: 9999
@@ -210,7 +210,7 @@ rule GATK_MARKDUPS:
         cpus = ALIGN_THREADS,
         mem_mb = 35000,
         iotasks = 4,
-        slurm_partition = "cpu_medium,fn_medium",
+        slurm_partition = "petljaklab,cpu_medium,fn_medium",
         runtime = 60*24*3,
         tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
@@ -253,7 +253,7 @@ rule GATK_MERGE:
         cpus = 2,
         runtime = 480,
         iotasks = 4,
-        slurm_partition = "cpu_short,fn_short,cpu_dev"
+        slurm_partition = "petljaklab,cpu_short,fn_short,cpu_dev"
     params:
         inputlist = lambda wildcards, input: f"-I {input}" if isinstance(input, str) else "-I " + " -I ".join(input)
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.benchmark"
@@ -281,7 +281,7 @@ rule BAM2CRAM:
     threads: 1
     resources:
         runtime = 480,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
         mem_mb = 4000,
     benchmark: "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
     priority: 1005
@@ -306,7 +306,7 @@ rule GATK_BAM_DONE:
         db = config["db"]
     resources:
         runtime = 10,
-        slurm_partition = "cpu_short",
+        slurm_partition = "petljaklab,cpu_short",
     priority: 1007
     shell:
         "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input} >> {log}; touch {output}"
