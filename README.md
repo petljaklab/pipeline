@@ -44,6 +44,12 @@ The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
 
 ## Developer documentation
 
+### How the pipelines work
+
+These pipelines are intended to be as simple to execute as possible. `gateway()`,  a convenience function, exists to enable the quick accession of the endpoint of an analysis for a given entity (study/sample/run). For example, a call to `gateway()` for the FASTQ endpoint determines the appropriate source for the FASTQ files based on their entries in the `petljakdb`. Similarly, a `gateway()` call for the `MUTECT` endpoint should determine whether the samples are cell lines or patients, and thereby determine which module to use to satisfy the `MUTECT` endpoint.
+
+Overall, the `petljakdb` should store all the metadata required to handle how the pipelines are run. The pipeline framework should, therefore, utilize this information to reproducibly and consistently execute analyses on data entities in a generalizable fashion. 
+
 ### To add a new pipeline:
 1. Create a new Snakefile module under `modules/`
 2. Modify `modules/db_deps.py` to include this new pipeline:
@@ -55,6 +61,7 @@ The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
    c) Modify `module_inputs`. This maps each module with the **endpoint** that is required for input. For example, the mapping module needs FASTQ. It doesn't particularly care where the FASTQ came from, just that it gets made.
 
 3. Add it to `gateway()` in `lib/input_functions.py`. If it's a new endpoint, you'll need to add code to handle that endpoint. Otherwise, if it's a new module for an existing endpoint, you need to add the appropriate code to handle this module and decide when it should be executed (as opposed to another module to satisfy the endpoint). 
+
 
 
 
