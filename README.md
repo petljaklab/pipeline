@@ -29,10 +29,14 @@ FASTQ:
 - SRA-hosted data (`SRA`)
 - EGA-hosted data (`EGA`)
 - Local BAM files to be remapped (`EXTERNAL_BAM`)
+
 Alignment:
 - GATK WGS best practices CRAM (`GATK_BAM`)
+
+
 SNV calling:
 - Parent-daughter cell line (`MUTECT_CELLLINE`)
+
 Indel calling:
 - Tumor-normal (`INDEL`)
 
