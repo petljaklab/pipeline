@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import glob
+import petljakapi.cellline
 
 MUTECT_CELLLINE_PIPELINE_VERSION = "1.0.0"
 MUTECT_CELLLINE_PATH = os.path.join(basedir, "modules", "MUTECT_CELLLINE")
@@ -98,14 +99,22 @@ def full_cell_line_cohort(wildcards):
         #o_list.extend(gateway("MUTECT", petljakapi.translate.idtostring(sample[0], "MPS"), scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = db))
         ## get the analysis ID for this sample
         analysis = petljakapi.select.multi_select(db, "analyses", {"samples_id":sample[0], "pipeline_name":"MUTECT_CELLLINE"})
-        if len(analysis) < 1:
+        runs = petljakapi.select.multi_select(db, "runs", {"sample_id":sample[0]})
+        if len(analysis) == 0 or len(runs) == 0:
             print(sample)
             continue
         ## TODO: make this hg-agnostic
         analysis = analysis[0]
         p = analysis[10]
         aid = petljakapi.translate.idtostring(analysis[0], "MPA")
-        o_list.extend(glob.glob(os.path.join(p, aid, "mutect2/hg19/*/table_raw.txt")))
+        ## If this sample has daughters
+        daughts = petljakapi.cellline.daughter_cells(sample[0], db = db)
+        if daughts:
+            o_list.append(os.path.join(p, aid, "mutect2/hg19/parental/table_raw.txt"))
+        parents = petljakapi.select.multi_select(db, "samples", {"id":sample[5]}, bench = config["bench"])
+        if parents:
+            o_list.append(os.path.join(p, aid, "mutect2/hg19/germ/table_raw.txt"))
+            o_list.append(os.path.join(p, aid, "mutect2/hg19/std/table_raw.txt"))
     return(o_list)
     
 rule M2_SBS_TABLES:
@@ -145,7 +154,7 @@ rule M2_SBS_TABLES:
                 with open(output.daughter, "a") as f:
                     f.write("%s\n" % '\t'.join([files[0], files[1], sample[1], parent_name, cell_name]))
             if len(daughters) > 0: ## ie. if this is a parent
-                files = ["mutect2/hg19/parental/table_raw.txt"]
+                files = [os.path.join(ap, aid, "mutect2/hg19/parental/table_raw.txt")]
                 with open(output.parental, "a") as f:
                     f.write("%s\n" % '\t'.join([files[0], sample[1], cell_name]))
 

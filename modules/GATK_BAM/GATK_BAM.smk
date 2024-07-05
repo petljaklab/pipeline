@@ -45,7 +45,8 @@ rule UBAM:
     resources:
         runtime = 240,
         iotasks = 2,
-        mem_mb = 3000,
+        mem_mb = 4000,
+        jv_mem = 3750,
         slurm_partition = "petljaklab,cpu_short"
     params:
         TEMP_DIR = TEMP_DIR,
@@ -53,7 +54,8 @@ rule UBAM:
     priority: 9999
     shell:
         """
-        gatk FastqToSam \
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            FastqToSam \
             --FASTQ {input[0]} \
             --FASTQ2 {input[1]} \
             --OUTPUT {output.ubam} \
@@ -79,6 +81,7 @@ rule MARK_ADAPTERS:
     resources:
         runtime = 240,
         mem_mb = 2000,
+        jv_mem = 1900,
         iotasks = 2,
         slurm_partition = "petljaklab,cpu_short,fn_short"
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
@@ -86,7 +89,8 @@ rule MARK_ADAPTERS:
     shell:
         """
         mkdir -p {params.tmp}
-        gatk MarkIlluminaAdapters \
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            MarkIlluminaAdapters \
             -I {input.ubam} \
             -O {output.obam} \
             -M {output.metrics} \
@@ -108,13 +112,16 @@ rule MARKED_SAM_TO_FASTQ:
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.samtofastq.benchmark"
     resources:
         runtime = 480,
+        mem_mb = 4000,
+        jv_mem = 3750,
         iotasks = 2,
         slurm_partition = "petljaklab,cpu_short,fn_short"
     priority: 1001
     shell:
         """
         mkdir -p {params.tmp}
-        gatk SamToFastq \
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            SamToFastq \
             -I {input.bam} \
             -FASTQ {output.ifastq} \
             -CLIPPING_ATTRIBUTE XT -CLIPPING_ACTION 2 -INTERLEAVE true -NON_PF true \
@@ -173,6 +180,7 @@ rule MERGEBAMALIGNMENT:
         threads = 1,
         cpus = 1,
         mem_mb = 3000,
+        jv_mem = 2900,
         iotasks = 4,
         slurm_partition = "petljaklab,cpu_medium,fn_medium"
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
@@ -181,7 +189,8 @@ rule MERGEBAMALIGNMENT:
     shell:
         """
         mkdir -p {params.tmp}
-        gatk MergeBamAlignment \
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            MergeBamAlignment \
             -ALIGNED_BAM {input.bwa} \
             -UNMAPPED_BAM {input.ubam} \
             -OUTPUT {output.bam} \
@@ -291,8 +300,8 @@ rule BAM2CRAM:
         echo    'This CRAM was generated using the fasta file located at {input.bwa_idxbase}. The md5 hash of the reference is at {output.ref_md5}. \
                 The matching reference fasta at the specified directory is REQUIRED for proper decompression of the file' > {output.readme};
         samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log}
-        chmod 750 {output};
         samtools index {output.cram} &>> {log}
+        chmod 750 {output};
         """
 
 rule GATK_BAM_DONE:
