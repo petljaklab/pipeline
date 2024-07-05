@@ -28,6 +28,41 @@ For calling SBS from cell lines, we use Mutect2 with some adaptations for the da
 
 In a cohort consisting of 71 daughters derived from 18 parents from 2 lines (35-9 and 36-9), the count of parents that shared individual mutations was quantified. The plurality of mutations are found within only one parent, and a large secondary population of mutations are found within all parents. Smaller numbers of mutations are found within 2-8 parents.  Selecting any number in this range is likely to work here overall. We selected 50% as that's a convenient middle ground that is likely to extend well to larger/smaller numbers of parents.
 
+### Variants shared between >50% of parents are enriched for junk
+
+![Parental shared profiles](figs/mutect_cell_line/parental_shared_variants.png)
+
+Using H2347 cells as an example (they have SBS2/13 mutational signatures active), we plot the 96-context mutational profiles of variants that are shared in >50% of parents and variants that private to each daughter. The mutational profile of variants that are found in >50% of parents is far flatter, and shows high SBS5 character - indicating that they are enriched for pre-existing mutations in the line. We filter these mutations out.
+
+### Variants shared outside the lineage are generally low quality
+
+![Outside lineage sharedness](figs/mutect_cell_line/shared_outside_profiles.png)
+
+Mutations that are shared with other daughters outside the lineage are similarly junk. Similar to mutations shared within parents, the variants are enriched for SBS5-like character, indicating likely pre-existing mutations. Furthermore, the variants are enriched for mapping artifacts; their MAPQs are systematically lower than other categories of mutations:
+
+![Outside lineage mapq](figs/mutect_cell_line/shared_outside_mapq.png)
+
+Finally, if one checks these mutations on IGV, it can be seen that these variants are often found in e.g. LINE elements with high sequence similarity to other regions of the genome. Consequently they cannot be trusted and we filter these out.
+
+### Variants shared between related daughters, but not outside their lineage, are probably okay.
+
+![Within lineage](figs/mutect_cell_line/shared_within_lineage.png)
+
+Mutations shared amongst multiple daughters are either pre-existing at a fraction too low to reliably sequence, or arose from early clonal expansion in the daughter lineages. Statistically, at 30-40x coverage, it is far more likely that these are de novo mutations acquired early in culture compared to failing to sequence by random chance. Because the mutational profiles look pretty similar to private mutations, and because of the overall statistical likelihood of them being de novo, we keep these mutations.
+
+### Overall mutation classification
+
+We plot the overall mutation classes based on the above filtering steps.
+
+![H1650 classes](figs/mutect_cell_line/H1650_categories.png)
+![H2347 classes](figs/mutect_cell_line/H2347_categories.png)
+
+The mutation class plots above reveal some interesting things.
+
+Firstly, it should be noted that we determined the H1650_W5 daughters are sample swaps, as well as H2347_A4 and H2347_A7. For the H1650_W5, we can see that because the variant calling was performed against a _very_ wrong parent, many mutations get caught in the >50% parents filter. For the H2347 sample swapped clones, however, we find that this doesn't happen - instead we get a ton of mutations shared between daughters of the same lineage. One hypothesis for why this is, is that the erroneous parent for the H2347 clones is still fairly closely related to the daughters, resulting in still largely successful filtering of pre-existing variants. 
+
+Aside from this, we see that the number of mutations filtered by our extra filters is fairly low for most samples. Based on the mutational profiles (above), we can be fairly confident that we've removed pre-existing junk to get overall cleaner mutation call sets for these samples. 
+
 ## QC
 
 We perform two levels of QC using variant data. First, we check to ensure that we've sequenced the cell line we think we've sequenced, using COSMIC's set of discriminatory SNPs for 1k cell lines. Secondly, we check for intersects between high clonality, private parental mutations and daughters to verify/check for sample swaps.
@@ -40,7 +75,9 @@ In this experiment, we used NCI-H1650, NCI-H2347, and PC-9(PC-14) cells. Mutatio
 
 ### Parent of origin
 
-Each parental line has its own private set of mutations that should be distinct from other parental lineages. We harness this genetic fingerprint to determine which parent gave rise to which daughter. 
+![Parent of origin](figs/mutect_cell_line/parent_of_origin.png)
+
+Each parental line has its own private set of mutations that should be distinct from other parental lineages. We harness this genetic fingerprint to determine which parent gave rise to which daughter. We select variants in the parent with a VAF > 0.25 that have not been found in and other parent. We are fairly strict with this, omitting any variant that has any sequence evidence in any other parent - even one read. We then check to see if these variants are represented in the daughters. In the above figure, the Y-axis represents the parental samples, and the X-axis represents each daughter sample. The tiles are colored by overlap. It can be seen that, for example, BT-474_A daughters match with BT-474_A parent, which is good and expected. However, the BT-474_F daughters match with BT-474_Jv1 parents, which consistutes a sample swap. These swaps are easily visualized using the heatmap above.
 
 
 
