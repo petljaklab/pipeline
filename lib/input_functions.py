@@ -69,21 +69,30 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         table_id = entry[0][0]
         cell_id = entry[0][6]
         parent_id = entry[0][5]
+        path_prefix = prod_dir
         if cell_id is not None and cell_id != "NULL":
             INPIPE = "MUTECT_CELLLINE"
+            ## Test if this sample is used as a reference for any other samples
+            daughters = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "sample_parent_id", filter_value = table_id, bench = bench)
+            ## Init list of endpoints, beginning with line of origin (later will need to have another if-else block for biopsy vs cell lines to exclude this)
+            end_path = ["mutect2/hg19/proc/line_of_origin.txt"]
+            ## First, if we have a parent (ie this is a daughter line), need to add the correct endpoints for daughters
+            if parent_id is not None and parent_id != "NULL":
+                end_path.extend(["mutect2/hg19/proc/variants_final.vcf"])
+            if len(daughters) > 0: ## ie. if this is a parent
+                end_path.extend(["mutect2/hg19/parental/table_raw.txt"])
+            #print(end_path)
         else:
-            raise ValueError(f"Handling of non-cell line mutect pipeline runs not yet supported")
-        ## Test if this sample is used as a reference for any other samples
-        daughters = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "sample_parent_id", filter_value = table_id, bench = bench)
-        ## Init list of endpoints, beginning with line of origin (later will need to have another if-else block for biopsy vs cell lines to exclude this)
-        end_path = ["mutect2/hg19/proc/line_of_origin.txt"]
-        ## First, if we have a parent (ie this is a daughter line), need to add the correct endpoints for daughters
-        if parent_id is not None and parent_id != "NULL":
-            end_path.extend(["mutect2/hg19/proc/variants_final.vcf"])
-        if len(daughters) > 0: ## ie. if this is a parent
-            end_path.extend(["mutect2/hg19/parental/table_raw.txt"])
-        #print(end_path)
-        path_prefix = prod_dir
+            INPIPE = "MUTECT_BIOP"
+            pat_id = entry[0][8]
+            germline = petljakapi.select.multi_select(db, "samples", {"id":pat_id})[0][2]
+            if germline == pat_id:
+                print(f"Calling germline variants is not yet supported. Skipping sample {id_dict[terminal_dep]}")
+                return()
+            end_path = ["mutect2/hg19/biop/filtered.vcf"]
+            ## If this is the germline sample, simply pass (we don't do germline calling yet)
+            
+
     elif analysis_name == "INDEL":
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]

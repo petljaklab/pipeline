@@ -33,6 +33,10 @@ db_deps = {
     "INDEL":[
         "studies",
         "samples"
+    ],
+    "MUTECT_BIOP":[
+        "studies",
+        "samples"
     ]
 
 }
@@ -49,6 +53,7 @@ module_outputs = {
     "LOAD_EXTERNAL_BAM":"LOAD_EXTERNAL_BAM",
     "EXTERNAL_BAM":"EXTERNAL_BAM",
     "INDEL":"INDEL",
+    "MUTECT_BIOP":"MUTECT"
 }
 
 ## Invert the dict
@@ -70,7 +75,8 @@ module_inputs = {
     "MUTECT_CELLLINE":["WGS_MERGE_BAM"],
     "EXTERNAL_BAM":[],
     "LOAD_EXTERNAL_BAM":[],
-    "INDEL":["WGS_MERGE_BAM"]
+    "INDEL":["WGS_MERGE_BAM"],
+    "MUTECT_BIOP":["WGS_MERGE_BAM"],
 }
 
 ## e.g. we can see that GATK_BAM requires a FASTQ module as input and outputs a WGS_MERGE_BAM
