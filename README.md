@@ -42,6 +42,16 @@ Indel calling:
 
 The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
 
+## Module-specific documentation
+
+### EXTERNAL_BAM
+
+In order to process a preprocessed bam/cram into fastq for realignment/reprocessing to be consistent with the rest of our data, we need to first get run information out of the bams/crams. To do this, there's a module that runs separately from the rest of the pipeline, PREP_EXTERNAL_BAM. Currently it is configured to only work on study 3. Before you can run any of the other pipelines from an external bam set, first you need to run PREP_EXTERNAL_BAM on the files to load the runs data into the database. Once it completes, you may then execute other modules, e.g. `SOMATIC`.
+
+There is a function `get_external_bam_path` that accomplishes a mapping from a sample ID to the path to the bams, which is the bit that's specific to study 3. It is found in modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk. 
+
+Once it's adatped to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
+
 ## Developer documentation
 
 ### How the pipelines work
