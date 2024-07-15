@@ -73,6 +73,10 @@ for(current_line in lines){
 	## Subset tables
 	daughter_subtable = daughters_table[line == current_line]
 	parent_subtable = parent_table[line == current_line]
+	if(nrow(parent_subtable) == 0){
+		message("Skipping line, no parents sequenced")
+		next
+	}
 	## Process parents for this line
 	## We want to get a table of one line per mutation, and the n of parents with the mutation
 	message("Reading parent variants...")
