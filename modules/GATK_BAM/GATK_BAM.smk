@@ -292,7 +292,7 @@ rule BAM2CRAM:
         runtime = 480,
         slurm_partition = "petljaklab,cpu_short",
         mem_mb = 4000,
-    benchmark: "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
     priority: 1005
     shell:
         """
