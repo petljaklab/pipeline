@@ -52,7 +52,8 @@ module load mariadb
 ## Assuming the id of the newly imported study is 6, matching the DB/example dump in the petljakdb repo
 ## mysql -B makes it tab-separated, --execute runs the query and dumps the output to stdout
 ## tail -n +2 strips the column header
-mysql petljakdb -B --execute "SELECT id FROM samples WHERE study=5" | tail -n +2 > samples.txt
+## The awk statement ensures fixed-width of 6 for the numeric component and a prefix of "MPS" to specify sample ID. See next section for details on this.
+mysql petljakdb -B --execute "SELECT id FROM samples WHERE study=5" | tail -n +2 | awk '{printf "MPS", "%06d\n", $1}' > samples.txt
 ## Execute the pipeline for the SOMATIC (SBS & indel) endpoint in dryrun (-n) mode to populate the analyses table/test that everything works
 python ./executor.py --idfile samples.txt --pipeline SOMATIC -n
 ## Execute the pipeline
@@ -75,6 +76,9 @@ There will be a relevant analysis entry in the analyses table (described in the 
                        └──{pipeline_name}
                            └──{analysis.id}
 ```
+
+For readability, identifiers in file names/analyses are fixed width (9 characters) and prefixed by their type - MP (for Mia Petljak, our fearless leader), and P (project, or study), S (sample), R (run) or A (analysis). So for example, `MPP000001` refers to study ID 1, and `MPS000028` refers to sample ID 28. 
+
 ## Module-specific documentation
 
 ### EXTERNAL_BAM
