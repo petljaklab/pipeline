@@ -41,6 +41,25 @@ Indel calling:
 
 The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
 
+## Running an analysis
+
+Adding a project is somewhat project-specific. See the example data importing tables/script [here](https://github.com/petljaklab/petljakdb/tree/master/data_imports), and the documentation for the [petljakDB](https://github.com/petljaklab/petljakdb) to add a study, the samples, runs, and cells/patients/etc related to the analysis.
+
+the runner function `executor.py` handles reading the relevant metadata from the database. One example workflow, using the imported example data/import script above, is:
+
+```
+module load mariadb
+## Assuming the id of the newly imported study is 6, matching the DB/example dump in the petljakdb repo
+## mysql -B makes it tab-separated, --execute runs the query and dumps the output to stdout
+## tail -n +2 strips the column header
+mysql petljakdb -B --execute "SELECT id FROM samples WHERE study=5" | tail -n +2 > samples.txt
+## Execute the pipeline for the SOMATIC (SBS & indel) endpoint in dryrun (-n) mode to populate the analyses table/test that everything works
+python ./executor.py --idfile samples.txt --pipeline SOMATIC -n
+## Execute the pipeline
+python ./executor.py --idfile samples.txt --pipeline SOMATIC
+```
+
+
 ## Module-specific documentation
 
 ### EXTERNAL_BAM
