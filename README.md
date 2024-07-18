@@ -43,9 +43,9 @@ The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
 
 ## Running an analysis
 
-Adding a project is somewhat project-specific. See the example data importing tables/script [here](https://github.com/petljaklab/petljakdb/tree/master/data_imports), and the documentation for the [petljakDB](https://github.com/petljaklab/petljakdb) to add a study, the samples, runs, and cells/patients/etc related to the analysis.
+Adding a project's metadata is somewhat project-specific. See the example data importing tables/script [here](https://github.com/petljaklab/petljakdb/tree/master/data_imports), and the documentation for the [petljakDB](https://github.com/petljaklab/petljakdb) to add a study, the samples, runs, and cells/patients/etc related to the analysis. Essentially there must be a `studies` entry for the overall study, a `samples` entry for the samples in the study, and a `runs` entry for each sequencing run. If patient data are used, they must be tracked in the `patients` table. If a cell line is used, the line must be tracked in the `cells` table. 
 
-the runner function `executor.py` handles reading the relevant metadata from the database. One example workflow, using the imported example data/import script above, is:
+the runner function `executor.py` handles reading the relevant metadata from the database. One example workflow, assuming you're using the imported example data/import script above, is:
 
 ```
 module load mariadb
