@@ -59,12 +59,33 @@ python ./executor.py --idfile samples.txt --pipeline SOMATIC -n
 python ./executor.py --idfile samples.txt --pipeline SOMATIC
 ```
 
-
+There will be a relevant analysis entry in the analyses table (described in the petljakdb repo) that provides a path to your results. The general directory structure for pipelined analyses is:
+```
+[prod_dir]/
+   └──studies/
+       └──flatfile.txt
+       └──{studies.id}/
+           └──analyses/
+               └──{pipeline_name}
+                   └──{analysis.id}
+           └──samples/
+               └──flatfile.txt
+               └──{samples.id}/
+                   └──analyses/
+                       └──{pipeline_name}
+                           └──{analysis.id}
+```
 ## Module-specific documentation
 
 ### EXTERNAL_BAM
 
-In order to process a preprocessed bam/cram into fastq for realignment/reprocessing to be consistent with the rest of our data, we need to first get run information out of the bams/crams. To do this, there's a module that runs separately from the rest of the pipeline, PREP_EXTERNAL_BAM. Currently it is configured to only work on study 3. Before you can run any of the other pipelines from an external bam set, first you need to run PREP_EXTERNAL_BAM on the files to load the runs data into the database. Once it completes, you may then execute other modules, e.g. `SOMATIC`.
+In order to process a preprocessed bam/cram into fastq for realignment/reprocessing to be consistent with the rest of our data, we need to first get run information/read groups out of the bams/crams. To do this, there's a module that runs separately from the rest of the pipeline, PREP_EXTERNAL_BAM. Currently it is configured to only work on study 3. Before you can run any of the other pipelines from an external bam set, first you need to run PREP_EXTERNAL_BAM on the files to load the runs data into the database. Once it completes, you may then execute other modules, e.g. `SOMATIC`.
+
+for example, the workflow for this would be:
+1. Add all the samples to the database as described in the previous section, don't worry about runs
+2. run the PREP_EXTENRAL_BAM pipeline, which will load the runs by checking the RG tags of the input bams:
+`python ./executor.py --idfile samples.txt --pipeline PREP_EXTERNAL_BAM`
+3. Execute your desired pipeline
 
 There is a function `get_external_bam_path` that accomplishes a mapping from a sample ID to the path to the bams, which is the bit that's specific to study 3. It is found in `modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk`. 
 
