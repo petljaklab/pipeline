@@ -7,12 +7,12 @@ Bioinformatics workflows for the [Petljak Lab](https://petljaklab.com/) at the P
 
 ## Overview
 
-The petljaklab pipelines are a collection of [Snakemake](https://snakemake.readthedocs.io/en/stable/) modules, each of which does a specific task in genomics, e.g. WGS alignment, or variant calling in a cell line parent-daughter context. 
+The petljaklab pipelines are a collection of [Snakemake](https://snakemake.readthedocs.io/en/stable/) modules, each of which does a specific task in genomics (e.g. WGS alignment or variant calling in a cell line parent-daughter context). 
 
-Granted, many different workflows make, for example, a VCF. Which workflow is run, is determined from metadata that is stored on the [petljakDB](https://github.com/petljaklab/petljakdb). 
+Granted, many different workflows make, for example, a VCF. The specific workflow that will run is determined automatically from metadata that is stored on the [petljakDB](https://github.com/petljaklab/petljakdb). 
 
-The executor function, `executor.py` is given a sample (or list of samples) alongside an endpoint. For example, `WGS_MERGE_BAM` is the endpoint for making a WGS cram. 
-The function determines based on the sample metadata on the petljakdb which module should be used to generate the cram file. 
+The executor function, `executor.py`, is given a sample (or list of samples) alongside an endpoint. For example, `WGS_MERGE_BAM` is the endpoint for making a WGS cram. 
+The function uses the sample metadata on the petljakdb to determine which module should be used to generate the cram file. 
 Similarly, for a parent-daughter cell line experiment, the pipeline determines the sample's matched parental sample as well as its sibling clones based on the database metadata. 
 Refer to the database/API repo for information on how the data are stored there.
 
@@ -33,7 +33,6 @@ FASTQ:
 Alignment:
 - GATK WGS best practices CRAM (`GATK_BAM`)
 
-
 SNV calling:
 - Parent-daughter cell line (`MUTECT_CELLLINE`)
 
@@ -50,7 +49,7 @@ In order to process a preprocessed bam/cram into fastq for realignment/reprocess
 
 There is a function `get_external_bam_path` that accomplishes a mapping from a sample ID to the path to the bams, which is the bit that's specific to study 3. It is found in `modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk`. 
 
-Once it's adatped to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
+Once it's adapted to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
 
 ## Developer documentation
 
