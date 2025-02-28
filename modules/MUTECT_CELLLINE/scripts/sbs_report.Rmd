@@ -1,7 +1,7 @@
 ---
-title: "SBS Filtering and QC Report"
+title: "Petljak Lab Parent-Daughter Cell Line SBS Filtering and QC Report"
 author: "Luka Culibrk"
-date: "2024-05-03"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
     pdf_document:
         keep_md: true
@@ -9,12 +9,29 @@ params:
   args: ''
 ---
 
+\pagebreak
+
+This document describes the process of SBS variant calling in parent:daughter cell line models for the petljak lab. 
+
+The process for the data before it arrives in this report is:
+
+1. Daughter CRAMs are variant called against the parental by Mutect2
+2. Daughter CRAMs are variant called against the parental by Mutect2, with extreme sensitivity to identify all parental and germline mutations
+3. For each cell **lineage** (ie. for all cells arising from the same parent), combine the variants in 2 to generate a superset of all variants in each lineage.
+4. Parent CRAMs are variant called against the reference genome by Mutect2, variant calling is forced for all variant sites identified in step 3 (ie. all sites with any mutation in the lineage are checked for variant reads in the parent).  
+5. Mutations from 1 are flagged for each daughter based on sequence coverage and mutation sharedness (discussed in detail below)
+
+The below document justifies this post-hoc filtering. 
+
+\pagebreak
+
 ```{r setup, include=FALSE}
 library(data.table)
 library(ggplot2)
 library(cowplot)
 library(viridis)
 library(stringr)
+library(ggridges)
 set.seed(42069)
 
 
@@ -88,55 +105,83 @@ plot_variants = function(dat){
 }
 ```
 
-## Code to read the data
+```{r echo = FALSE, include = FALSE}
+tbl = fread("/gpfs/data/petljaklab/data/studies/MPP000003/analyses/MUTECT_CELLLINE/hg19/daughters_table.txt", header = F)
+tbl_parent = fread("/gpfs/data/petljaklab/data/studies/MPP000003/analyses/MUTECT_CELLLINE/hg19/parents_table.txt", header = F)
+```
+
+```{r echo = FALSE}
+print(params$args)
+args = params$args
+print(args["daughter"])
+knitr::knit_exit()
+```
 
 ```{r}
 args = params$args
 tbl = fread(args["daughter"], header = F)
-names(tbl) = c("std_path", "germ_path", "name", "line", "cell")
+names(tbl) = c("std_path", "germ_path", "name", "line", "cell", "treatment", "culture_time")
 tbl[,analysis_path:=dirname(dirname(std_path))]
+
+tbl_parent = fread(args["parent"], header = F)
+names(tbl_parent) = c("std_path", "name", "cell", "treatment")
+tbl_parent[,analysis_path:=dirname(dirname(std_path))]
 ```
 
-## Cell line of origin QC
+## Cell line/parent of origin quality control
 
-We show heatmaps for quick visualization as well as show a list of the unique top matches for each cell group.
+There are 93 SNP sites that allow discrimination between all COSMIC/CCLE cell lines. The variants and their genotypes in the 1k cell lines can be found at `/gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/reference_genotypes.txt`. We check for variants matching these reference sites using Bcftools. Similarity is calculated using a simple scoring system of 0.5 points per haplotype of difference. For example, if a variant is genotyped as A/A in the sample but is G/G in the reference, both haplotypes are different and the two samples have a distance of 1. For a given sample, the most likely cell line is determined by the reference line with the smallest total distance to the sample. 
 
-```{r cell_line_of_origin, fig.height=20, fig.width=14, out.width="100%"}
-cell_lines = unique(tbl$cell)
-identity_qc_results = lapply(1:nrow(tbl), function(x){
-		path = tbl$analysis_path[x]
+Next we match parents with daughters. For each parent, we compute a set of variants unique to that parent to serve as a "fingerprint". Then, for each daughter, we compute the proportion of those fingerprint mutations which have any support in that daughter. For a correct parent:daughter pair, we typically but not always observe 80% or more of the parental fingerprint mutations found in the daughter. Correct pairings can be clearly determined from visual inspection of the resulting heatmaps.
+
+For each cell line analyzed, below will be a printout of all unique top matches across all samples for each cell line in the study. If the cell lines match their expected lines, then the printout should simply state that all the top hits for cell line X is X. However if one sample is mismatched, it would print out cell line X and the mismatched cell line as well. Essentially, this is a quick check for whether the annotations match the data. 
+
+On the next pages are two sets of heatmaps. First will be the heatmaps corresponding to the cell line QC described above. Each column is an individual sample (parent or daughter), and rows are reference cell lines. The heatmap is colored based on the mutational distance, calculated as described above. If all cell lines match well to a single reference, the match will be visible as a horizontal yellow line. 
+
+The next plots show the recall of parental fingerprint mutations in daughters. Columns are daughters and rows are parents. Each cell of the heatmap is colored according to the proportion of the parental fingerprint mutations identified in that daughter sample. If all daughters were derived from their corresponding parent, it will be visible as a diagonal line of yellow cells. Daughters derived from unexpected parents (sample swaps) will be visible by either having no good matches for the daughter, or a good match to a parent that was believed to be unrelated in the experimental metadata. 
+
+
+
+```{r cell_line_of_origin_text, fig.height=20, fig.width=14, out.width="100%", echo = FALSE, cache = TRUE}
+iden_qc_tbl = rbind(tbl, tbl_parent, fill = T)
+
+cell_lines = unique(iden_qc_tbl$cell)
+identity_qc_results = lapply(1:nrow(iden_qc_tbl), function(x){
+		path = iden_qc_tbl$analysis_path[x]
 		qc_path = paste0(path, "/proc/line_of_origin.txt")
 		tab = fread(qc_path)
-		tab$name = tbl$name[x]
+		tab$name = iden_qc_tbl$name[x]
 		return(tab)
 })
-
 tops = lapply(identity_qc_results, function(x){x[1]$line})
 
 for(i in cell_lines){
-	inds = which(tbl$cell == i)
+	inds = which(iden_qc_tbl$cell == i)
 	message(paste0("All top hits for samples from cell line ", i, ":"))
 	print(unique(unlist(tops[inds])))
 }
 
+```
+\pagebreak
+
+```{r cell_line_of_origin, fig.height=20, fig.width=14, out.width="100%", echo = FALSE, cache = TRUE}
 
 identity_qc_results = rbindlist(identity_qc_results)
 
 identity_qc_results[line %in% names(conversion_table),line:=conversion_table[line]]
 
 cell_lines_plots = lapply(cell_lines, function(x){
-	ggplot(identity_qc_results[name %in% tbl[cell == x]$name], aes(x = name, y = line, fill = distance)) + geom_tile() + scale_fill_viridis(name = "Mutational\nDistance", direction = -1) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle(paste0("Validating cell-line-of-origin of ", x, " cells")) + scale_y_discrete(breaks = x) + xlab("Sequenced Samples") + ylab("Reference Cell Lines")
+	ggplot(identity_qc_results[name %in% iden_qc_tbl[cell == x]$name], aes(x = name, y = line, fill = distance)) + geom_tile() + scale_fill_viridis(name = "Mutational\nDistance", direction = -1) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle(paste0("Validating cell-line-of-origin of ", x, " cells")) + scale_y_discrete(breaks = x) + xlab("Sequenced Samples") + ylab("Reference Cell Lines")
 })
 
 invisible(capture.output(print(cell_lines_plots)))
 
 ```
 
-## Parent/lineage of origin validation
 
-Here we QC based on parent-daughter unique mutation agreement. We already generated the similarity values as part of the collective processing script. Here we plot the results.
+\pagebreak
 
-```{r parent_of_origin, fig.width=12, fig.height=12}
+```{r parent_of_origin, fig.width=12, fig.height=12, echo = FALSE, cache = TRUE}
 poo_qc_results = lapply(1:nrow(tbl), function(x){
 		path = tbl$analysis_path[x]
 		qc_path = paste0(path, "/proc/parent_of_origin.txt")
@@ -153,18 +198,89 @@ for(i in cell_lines){
 
 ```
 
-## Filtering summary for each daughter clone
 
-```{r mutation_filtering_summary, fig.width=12, fig.height=9}
+\newpage
+
+## Filtering summaries
+
+As previously mentioned, we apply the following flags to mutations using information derived from both related and unrelated parent and daughter cells. "Filtered" indicates that the mutation is deemed to be not relevant to the experiment, due to being either germline, pre-existing somatic, or an artifact. We label each mutation according to these five categories for deeper investigation if desired:
+
+	i.   If the mutation has <15x coverage in parent, it is filtered and labeled accordingly
+	ii.  If the mutation is present in >50% of all parents from that cell line, it is filtered
+	and labeled accordingly.
+	iii. If the mutation is present in any daughter derived from a different parent, it is filtered 
+	and labeled accordingly.
+	iv.  If the mutation is present in other related daughters, it is **not** filtered, 
+	but labeled
+	v.   Mutations private to the daughter are **not** filtered and labeled as unique. 
+
+### Low coverage in parent
+
+In order to properly assess if a mutation is pre-existing, we require evidence that it is not present in the parental sample. 15x coverage is a common cutoff for this value, meaning that if a position has less than 15x coverage we do not have enough data to confidently assess a mutation's pre-existing or de novo status. 
+
+### Present in >50% of parents
+Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in another parent from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The 96-channel mutation profiles (see COSMIC mutation signatures for more information) share large similarity to SBS1 and SBS5-like patterns, consistent with germline and pre-existing somatic mutations acquired during the donor's life.
+
+### Present in daughter from different parents
+This category is similar to the previous category. If we observe a mutation in multiple daughters derived from different parents, two possibilities exist. The first possibility is that these are bona fide de novo mutations that arose independently in multiple biological samples, and the second is that these mutations arise from systematic errors as artifacts. Probabilistically, the first should be extremely rare - mutation burdens are on the order of thousands, and genome sizes are on the order of billions of bases, so intersections should be very rare. It is consequently far more likely, then, that these mutations are artifacts. This is corroborated by manual inspection of variants in IGV, which reveals that these mutations typically occur in repetitive DNA elements and the reads supporting those mutations typically map very well to many regions of the genome. We show mapping quality evidence for this mutation category, finding that the MAPQ (MAPping Quality) of these variant reads are considerably lower than the MAPQ of unique mutations. This lowered MAPQ is because of multimapping reads in repeat elements. 
+
+### Present in multiple daughters from the same parent
+This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - with a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first 4-5 cell divisions, it is very unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. These mutations are true de novo mutation acquired in the experiment, and consequently they are retained in the final variant callset. 
+
+### Unique mutations
+These mutations passed all of the above filters. They are high quality, private to each daughter, and were not found in any parents. They represent the mutations which we are most confident in. 
+
+### Plots
+The following pages plot first a summary of mutation counts across the above categories in all clones. Next you will find 96-channel SBS contexts of four of the above categories for each cell line and genotype. We skip the 15x parental coverage category for two reasons. First, the category is largely self-explanatory. Secondly, this results in an even number of plots, which conserves space. 
+
+
+\newpage
+
+```{r mutation_filtering_summary, fig.width=8, fig.height=11, echo = FALSE, cache = TRUE}
 variant_data = lapply(1:nrow(tbl), function(x){
 		path = tbl$analysis_path[x]
-		dat_path = paste0(path, "/proc/variants_headered.txt")
+		dat_path = paste0(path, "/proc/variants_final.txt")
 		tab = fread(cmd = paste("grep -v", "mutect_filtered", dat_path))[tumor.LAB != "mutect_filtered"]
 		tab$name = tbl$name[x]
 		return(tab)
 })
 
 variant_data = rbindlist(variant_data)
+
+
+if(F){
+	merged_parents = rep(list(), nrow(parent_dat))
+	for(i in 1:nrow(parent_dat)){
+		dat = fread(Sys.glob(paste0(parent_dat[i]$base, "parental/table_raw.txt")))[nchar(REF) == 1 & nchar(ALT) == 1]
+		sample_string = gsub("(.*\\.)F1R2", "\\1", names(dat)[grep(".*\\.F1R2", names(dat))])
+		names(dat) = gsub(sample_string, "", names(dat))
+		dat$name = parent_dat[i]$V2
+		merged_parents[i] = list(dat)
+	}
+	merged_parents = rbindlist(merged_parents)
+	
+	merged_parents = merged_parents[!grepl(",0", AD)]
+	merged_parents[,line:=gsub("([^\\_]*).*", "\\1", name)]
+	merged_parents = merged_parents[,.SD, .SDcols = c(1:11, 13:47)] ## exclude DP column (1st instance of it)
+	merged_parents[,n:=.N, by = c("CHROM", "POS", "REF","ALT", "line")]
+	n_p = merged_parents[,.(n = .N), by = c("CHROM", "POS", "REF","ALT", "line")]
+	fwrite(n_p, "n_p.txt")
+	fwrite(merged_parents, "merged_parents.txt")
+}
+
+parent_variants = lapply(1:nrow(tbl_parent), function(x){
+		path = tbl_parent$analysis_path[x]
+		dat_path = paste0(path, "/parental/table_raw.txt")
+		tab = fread(dat_path)
+		tab$name = tbl_parent$name[x]
+		tab$line = tbl_parent$cell[x]
+		return(tab)
+})
+
+parent_variants = rbindlist(parent_variants)
+n_p = parent_variants[,.(n = .N), by = c("CHROM", "POS", "ALT", "line")]
+rm(parent_variants)
+invisible(gc(verbose = F))
 
 long_label_descriptions = c("depth" = "Insufficient parental depth (<15x) (FAIL)", "shared_parental" = "Mutation present in >50% parents (FAIL)", "shared_external" = "Mutation present in other non-lineage daughters (FAIL)", "shared_lineage" = "Mutation present in the same lineage (PASS)", "unq" = "Mutation is private (PASS)")
 
@@ -173,60 +289,96 @@ long_label_wrap = stringr::str_wrap(long_label_descriptions, width = 20)
 variant_data[,tumor.LAB:=factor(tumor.LAB, levels = c("depth", "shared_parental", "shared_external", "shared_lineage", "unq"))]
 
 for(i in cell_lines){
-		print(ggplot(variant_data[name %in% tbl[cell == i]$name], aes(x = name, fill = tumor.LAB)) + geom_bar() + scale_fill_discrete(labels = long_label_wrap, name = "Mutation Category") + xlab("Sample") + ylab("SBS Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle(paste0("Filtering of mutations for cell line ", i)))
+	conds = sort(unique(tbl[cell == i]$treatment))
+	subplts = list()
+	for(c in conds){
+			p = ggplot(variant_data[name %in% tbl[cell == i & treatment == c]$name], aes(x = name, fill = tumor.LAB)) + geom_bar() + scale_fill_discrete(labels = long_label_wrap, name = "Mutation Category") + xlab("Sample") + ylab("SBS Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle(paste0("Filtering of mutations for cell line ", i, "\nCondition: ", c))
+			subplts = c(subplts, list(p))
+	}	
+	print(plot_grid(plotlist = subplts, ncol = 1))
 }
 
 ```
 
-## Now we break down justifications for each category. We skip the parental depth because this filter is fairly common sense as it applies to our ability to detect parental mutations. 
+\newpage
 
-### Category "Mutation present in >50% parents"
-
-```{r parental_mutation_filter, fig.width = 8}
+```{r, ncol = 1, echo = FALSE, fig.height=2, fig.width=8, out.extra='trim=0 0 0 0,clip', out.width='0.8\\paperwidth', cache = F, fig.align='center'}
+label_dict = c("shared_parental" = ">50%Parents",
+							 "shared_external" = "UnrelatedDaughters",
+							 "shared_lineage" = "RelatedDaughters",
+							 "unq" = "Unique")
 for(i in cell_lines){
-	print(plot_variants(variant_data[name %in% tbl[cell == i]$name][tumor.LAB == "shared_parental"]) + ggtitle(paste0("Mutation profile of ", i, " daughter SBSs found in >50% of parents")))
+	conds = sort(unique(tbl[cell == i]$treatment))
+	for(c in conds){
+		subplts = list()
+		filts = sort(unique(variant_data[name %in% tbl[cell == i]$name][name %in% tbl[treatment == c]$name]$tumor.LAB))
+		for(f in filts[filts != "depth"]){
+			p = plot_variants(variant_data[name %in% tbl[cell == i]$name][name %in% tbl[treatment == c]$name][tumor.LAB == f]) + ggtitle(paste0(i, "\n", label_dict[f], "\nGenotype:", c)) + theme(axis.text.y = element_blank(), axis.text.x = element_blank(), plot.title = element_text(size = 8))
+			subplts = c(subplts, list(p))
+		}
+		print(plot_grid(plotlist = subplts, nrow = 1) + theme(plot.background = element_rect(color = "black", fill=NA, linewidth=2000)))
+	}
 }
 ```
+\newpage
+
+### Sharedness of parental mutations
+
+We now show the spectrum of how shared parental mutations are. There is typically a large spike in mutation numbers at the maximum. 
+
+```{r parental_mutation_filter, fig.width = 8, fig.height = 10, echo = FALSE, cache = TRUE}
+sublist = list()
+for(i in cell_lines){
+	p = ggplot(n_p[line == i], aes(x = n)) + geom_bar() + xlab("Number of parental samples with sequence evidence for mutation") + ylab("SBS Mutation count") + ggtitle(paste0("Parental sharedness histogram for ", i)) + scale_x_continuous(breaks = 1:max(n_p[line == i]$n))
+	sublist = c(sublist, list(p))
+}
+plot_grid(plotlist = sublist, ncol = 1)
+```
+
+
+\newpage
 
 ### Category "Mutation present in other non-lineage daughters"
 
-```{r non_lineage_daughters, fig.width=8}
-for(i in cell_lines){
-	print(plot_variants(variant_data[name %in% tbl[cell == i]$name][tumor.LAB == "shared_external"]) + ggtitle(paste0("Mutation profile of ", i, " daughter SBSs shared between different lineages")))
+We expect to observe a dip in mapping quality and VAFs for the mutations in this category compared to others. This implies these mutations are mainly the result of low frequency mapping errors to low complexity DNA. 
+
+```{r non_lineage_daughters, fig.width=8, fig.height=10, echo = FALSE, cache = FALSE}
+variant_data[,mmq2:=tstrsplit(MMQ, ".")[2]]
+variant_data[,mmq2:=as.numeric(mmq2)]
+variant_data[,RC:=tstrsplit(tumor.AD, ".")[1]]
+variant_data[,AC:=tstrsplit(tumor.AD, ".")[2]]
+variant_data[,VAF:=as.numeric(AC)/sum(as.numeric(RC), as.numeric(AC))]
+
+p1 = ggplot(variant_data[name %in% tbl[cell == i]$name], aes(x = tumor.LAB, y = VAF, fill = tumor.LAB)) + geom_boxplot() + scale_x_discrete(labels = long_label_wrap) + theme(legend.position = "none") + xlab("Mutation classification")
+
+p2 = invisible(ggplot(variant_data[name %in% tbl[cell == i]$name], aes(x = mmq2, y = tumor.LAB, fill = tumor.LAB)) + geom_density_ridges(scale = 1) + scale_y_discrete(labels = long_label_wrap) + theme(legend.position = "none") + ylab("Mutation classification") + xlab("Variant mapping quality"))
+
+options(warn = -1)
+p = suppressMessages(plot_grid(p1, p2, ncol = 1))
+print(p)
+```
+
+## Mutation profiles of all daughter clones
+
+```{r, fig.height=10, fig.width=8, cache = TRUE, echo = FALSE}
+### Plot 20 per page
+plt_counter = 0
+pltlist = list()
+for(i in sort(unique(tbl$name))){
+	plt_counter = plt_counter + 1
+	p = plot_variants(variant_data[name == i][FILTER == "PASS"]) + ggtitle(paste0(i)) + theme(axis.text.y = element_blank(), axis.text.x = element_blank(), plot.title = element_text(size = 8))
+	pltlist = c(pltlist, list(p))
+	if(plt_counter == 20 | i == sort(unique(tbl$name))[length(unique(tbl$name))]){
+		if(plt_counter < 20){
+			len_to_add = 20 - plt_counter
+			blankplt = ggplot() + theme_void()
+			pltlist = c(pltlist, rep(list(blankplt), times = len_to_add))
+		}
+		print(plot_grid(plotlist = pltlist, ncol = 4))
+		cat("\\pagebreak")
+		plt_counter = 0
+		pltlist = list()
+	}
 }
 ```
 
-### Category "Mutation present in the same lineage" (ie. between sisters only), which we intend to keep
-
-```{r shared_same_lineage, fig.width=8}
-for(i in cell_lines){
-	print(plot_variants(variant_data[name %in% tbl[cell == i]$name][tumor.LAB == "shared_lineage"]) + ggtitle(paste0("Mutation profile of ", i, " daughter SBSs shared within the same lineage")))
-}
-```
-
-### Mutation profiles of private mutations. These should be similar to the previous set.
-
-```{r private_mutations, fig.width=8}
-for(i in cell_lines){
-	print(plot_variants(variant_data[name %in% tbl[cell == i]$name][tumor.LAB == "unq"]) + ggtitle(paste0("Mutation profile of private ", i, " daughter SBSs")))
-}
-```
-
-## Final mutation profiles of each cell type aggregated
-
-```{r final_profiles_by_cell_type, fig.width=8}
-
-for(i in cell_lines){
-	print(plot_variants(variant_data[name %in% tbl[cell == i]$name][FILTER == "PASS"]) + ggtitle(paste0("Mutation profile of passing ", i, " SBS mutations")))
-}
-
-```
-
-## Individual mutational profiles of daughter cells (this is a lot of plots)
-
-```{r final_mutational_profiles_samples, fig.width=8}
-for(i in unique(tbl$name)){
-	print(plot_variants(variant_data[name == i][FILTER == "PASS"]) + ggtitle(paste0("Mutation profile of passing ", i, " SBS mutations")))
-}
-
-```

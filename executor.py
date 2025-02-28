@@ -26,6 +26,8 @@ group.add_argument('--idfile', help = "List of IDs")
 parser.add_argument("--pipeline", help = "Analysis requested")
 parser.add_argument("--cell_id", required=False)
 parser.add_argument("--api_benchmark", action=argparse.BooleanOptionalAction, default = False)
+parser.add_argument("--reference_genome", default = None, required=False)
+parser.add_argument('--partition', default = "default", required = False)
 
 script_args, unknown = parser.parse_known_args()
 
@@ -61,17 +63,29 @@ sys.argv = [sys.argv[0]]
 sys.argv.extend(unknown)
 #print(sys.argv)
 
+if script_args.reference_genome is None:
+    ref = config["REFERENCE_GENOME_NAME"]
+else:
+    ref = script_args.reference_genome
+
+parts = script_args.partition
+if parts not in config["clusters"]:
+    raise ValueError(f"{parts} is not a valid cluster preset!")
 
 ## Sanity check the IDs
 for i in id:
     if not i.startswith(tuple(prefixes)):
         raise ValueError(f"Supplied ID does not start with one of {', '.join(prefixes)}")
-    analysis_path = lib.input_functions.gateway(analysis_name=script_args.pipeline, given_id=i, scratch_dir = config["SCRATCH_DIR"], prod_dir = config["PROD_DIR"], db = config["db"])
+    analysis_path = lib.input_functions.gateway(analysis_name=script_args.pipeline, given_id=i, scratch_dir = config["SCRATCH_DIR"], prod_dir = config["PROD_DIR"], db = config["db"], ref = ref)
     unknown.extend(analysis_path)
-
 
 if script_args.api_benchmark:
     unknown.extend(["--config", "bench=True"])
+
+
+## parts can be
+unknown.extend(["--config", f"parts={parts}"])
+
 ## This is going to be the TESTS tp53 test for now
 # First get the analysis ID for what we're trying to make so we can construct it
 

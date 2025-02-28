@@ -1,0 +1,693 @@
+nohup: ignoring input
+A matched normal is not used.             The maximum allele fraction to call a somatic mutation is set to be 0.3
+a
+b
+...........Spliting genomic regions for parallel execution (error estimation)................
+......Splitting bam regions into roughly equal chunks. Counting reads in chr1 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr2 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr3 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr4 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr5 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr6 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr7 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr8 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr9 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr10 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr11 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr12 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr13 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr14 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr15 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr16 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr17 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr18 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr19 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr20 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr21 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chr22 of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+......Splitting bam regions into roughly equal chunks. Counting reads in chrX of /gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/merged.cram......
+....Genomic regions splitted in 9.393786438306172 minutes...
+............Completed region splitting in 9.393788123130799 minutes............
+.........Starting estimating error rate.............
+Process 5: Initiated. Regions:chr2:32900000-chr2:32900000
+Process 5: screening for highly-damaged or misaligned reads
+Process 5: finished screening highly damaged reads in  0.00 minutes. Blacklisted 0 ( 0.00%) possible highly damaged read and started variant calling.
+Process 13: Initiated. Regions:chr4:27700000-chr4:80200000
+Process 13: screening for highly-damaged or misaligned reads
+Process 13: finished screening highly damaged reads in  0.46 minutes. Blacklisted 1146126 ( 17.64%) possible highly damaged read and started variant calling.
+Process 13: processed 1000000 reads in  0.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr4:33478665. End Position:chr4:80200000
+Process 13: processed 2000000 reads in  1.58 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:39081860. End Position:chr4:80200000
+Process 13: processed 3000000 reads in  2.37 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:44371200. End Position:chr4:80200000
+Process 13: processed 4000000 reads in  3.04 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr4:49096165. End Position:chr4:80200000
+Process 13: processed 5000000 reads in  3.11 minutes. Time for process last 1000000 reads: 0.07 minutes. Current position:chr4:49136437. End Position:chr4:80200000
+Process 13: processed 6000000 reads in  3.20 minutes. Time for process last 1000000 reads: 0.09 minutes. Current position:chr4:49288927. End Position:chr4:80200000
+Process 13: processed 7000000 reads in  3.27 minutes. Time for process last 1000000 reads: 0.07 minutes. Current position:chr4:50539986. End Position:chr4:80200000
+Process 13: processed 8000000 reads in  3.51 minutes. Time for process last 1000000 reads: 0.24 minutes. Current position:chr4:53145347. End Position:chr4:80200000
+Process 13: processed 9000000 reads in  4.27 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:58298977. End Position:chr4:80200000
+Process 13: processed 10000000 reads in  5.03 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:63792880. End Position:chr4:80200000
+Process 13: processed 11000000 reads in  5.77 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr4:69304770. End Position:chr4:80200000
+Process 13: processed 12000000 reads in  6.52 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr4:74923915. End Position:chr4:80200000
+Process 2: Initiated. Regions:chr1:123300000-chr1:178200000
+Process 2: screening for highly-damaged or misaligned reads
+Process 2: finished screening highly damaged reads in  0.45 minutes. Blacklisted 511555 ( 7.78%) possible highly damaged read and started variant calling.
+Process 2: processed 1000000 reads in  0.08 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:123787216. End Position:chr1:178200000
+Process 2: processed 2000000 reads in  0.16 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:124234753. End Position:chr1:178200000
+Process 2: processed 3000000 reads in  0.24 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:124555420. End Position:chr1:178200000
+Process 2: processed 4000000 reads in  0.32 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:124879760. End Position:chr1:178200000
+Process 2: processed 5000000 reads in  0.43 minutes. Time for process last 1000000 reads: 0.11 minutes. Current position:chr1:125180577. End Position:chr1:178200000
+Process 2: processed 6000000 reads in  0.52 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:143232866. End Position:chr1:178200000
+Process 2: processed 7000000 reads in  0.63 minutes. Time for process last 1000000 reads: 0.12 minutes. Current position:chr1:145801564. End Position:chr1:178200000
+Process 2: processed 8000000 reads in  0.98 minutes. Time for process last 1000000 reads: 0.35 minutes. Current position:chr1:150657800. End Position:chr1:178200000
+Process 2: processed 9000000 reads in  1.76 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:155947346. End Position:chr1:178200000
+Process 2: processed 10000000 reads in  2.53 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:161159603. End Position:chr1:178200000
+Process 2: processed 11000000 reads in  3.28 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr1:166572039. End Position:chr1:178200000
+Process 2: processed 12000000 reads in  4.07 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr1:172025214. End Position:chr1:178200000
+Process 2: processed 13000000 reads in  4.85 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:177410625. End Position:chr1:178200000
+Process 44: Initiated. Regions:chr20:51000000-chr22:20700000
+Process 44: screening for highly-damaged or misaligned reads
+Process 44: finished screening highly damaged reads in  0.44 minutes. Blacklisted 506081 ( 7.79%) possible highly damaged read and started variant calling.
+Process 44: processed 1000000 reads in  0.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr20:56390103. End Position:chr22:20700000
+Process 44: processed 2000000 reads in  1.62 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr20:61525333. End Position:chr22:20700000
+Process 44: processed 3000000 reads in  2.14 minutes. Time for process last 1000000 reads: 0.52 minutes. Current position:chr21:7316005. End Position:chr22:20700000
+Process 44: processed 4000000 reads in  2.23 minutes. Time for process last 1000000 reads: 0.09 minutes. Current position:chr21:9293773. End Position:chr22:20700000
+Process 44: processed 5000000 reads in  2.35 minutes. Time for process last 1000000 reads: 0.12 minutes. Current position:chr21:13964346. End Position:chr22:20700000
+Process 44: processed 6000000 reads in  3.12 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr21:19857083. End Position:chr22:20700000
+Process 44: processed 7000000 reads in  3.93 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr21:25872801. End Position:chr22:20700000
+Process 44: processed 8000000 reads in  4.70 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr21:31694881. End Position:chr22:20700000
+Process 44: processed 9000000 reads in  5.49 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr21:36897526. End Position:chr22:20700000
+Process 44: processed 10000000 reads in  6.29 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr21:41743390. End Position:chr22:20700000
+Process 44: processed 11000000 reads in  7.06 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr21:46654081. End Position:chr22:20700000
+Process 44: processed 12000000 reads in  7.17 minutes. Time for process last 1000000 reads: 0.11 minutes. Current position:chr22:16352754. End Position:chr22:20700000
+Process 38: Initiated. Regions:chr15:97900000-chr16:55200000
+Process 38: screening for highly-damaged or misaligned reads
+Process 38: finished screening highly damaged reads in  0.44 minutes. Blacklisted 593446 ( 9.12%) possible highly damaged read and started variant calling.
+Process 38: processed 1000000 reads in  0.76 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr16:475163. End Position:chr16:55200000
+Process 38: processed 2000000 reads in  1.53 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr16:5004555. End Position:chr16:55200000
+Process 38: processed 3000000 reads in  2.31 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr16:9799072. End Position:chr16:55200000
+Process 38: processed 4000000 reads in  3.11 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr16:14404676. End Position:chr16:55200000
+Process 38: processed 5000000 reads in  3.60 minutes. Time for process last 1000000 reads: 0.49 minutes. Current position:chr16:19041764. End Position:chr16:55200000
+Process 38: processed 6000000 reads in  4.24 minutes. Time for process last 1000000 reads: 0.64 minutes. Current position:chr16:23292411. End Position:chr16:55200000
+Process 38: processed 7000000 reads in  5.04 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr16:27706437. End Position:chr16:55200000
+Process 38: processed 8000000 reads in  5.63 minutes. Time for process last 1000000 reads: 0.58 minutes. Current position:chr16:32015100. End Position:chr16:55200000
+Process 38: processed 9000000 reads in  5.72 minutes. Time for process last 1000000 reads: 0.10 minutes. Current position:chr16:34586684. End Position:chr16:55200000
+Process 38: processed 10000000 reads in  5.96 minutes. Time for process last 1000000 reads: 0.24 minutes. Current position:chr16:37500325. End Position:chr16:55200000
+Process 38: processed 11000000 reads in  6.04 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr16:46398597. End Position:chr16:55200000
+Process 38: processed 12000000 reads in  6.75 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chr16:50361618. End Position:chr16:55200000
+Process 38: processed 13000000 reads in  7.55 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr16:55164290. End Position:chr16:55200000
+Process 16: Initiated. Regions:chr5:25900000-chr5:86100000
+Process 16: screening for highly-damaged or misaligned reads
+Process 16: finished screening highly damaged reads in  0.46 minutes. Blacklisted 1076175 ( 16.57%) possible highly damaged read and started variant calling.
+Process 16: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr5:31468444. End Position:chr5:86100000
+Process 16: processed 2000000 reads in  1.52 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr5:36690901. End Position:chr5:86100000
+Process 16: processed 3000000 reads in  2.29 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr5:42162688. End Position:chr5:86100000
+Process 16: processed 4000000 reads in  2.95 minutes. Time for process last 1000000 reads: 0.65 minutes. Current position:chr5:46976928. End Position:chr5:86100000
+Process 16: processed 5000000 reads in  3.03 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr5:49658623. End Position:chr5:86100000
+Process 16: processed 6000000 reads in  3.12 minutes. Time for process last 1000000 reads: 0.09 minutes. Current position:chr5:49737178. End Position:chr5:86100000
+Process 16: processed 7000000 reads in  3.60 minutes. Time for process last 1000000 reads: 0.48 minutes. Current position:chr5:53462396. End Position:chr5:86100000
+Process 16: processed 8000000 reads in  4.37 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:58849536. End Position:chr5:86100000
+Process 16: processed 9000000 reads in  5.13 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:64427515. End Position:chr5:86100000
+Process 16: processed 10000000 reads in  5.88 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr5:69801418. End Position:chr5:86100000
+Process 16: processed 11000000 reads in  6.45 minutes. Time for process last 1000000 reads: 0.57 minutes. Current position:chr5:75125271. End Position:chr5:86100000
+Process 16: processed 12000000 reads in  7.21 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr5:80591507. End Position:chr5:86100000
+Process 28: Initiated. Regions:chr10:39200000-chr10:94000000
+Process 28: screening for highly-damaged or misaligned reads
+Process 28: finished screening highly damaged reads in  0.44 minutes. Blacklisted 593972 ( 9.13%) possible highly damaged read and started variant calling.
+Process 28: processed 1000000 reads in  0.15 minutes. Time for process last 1000000 reads: 0.15 minutes. Current position:chr10:41172959. End Position:chr10:94000000
+Process 28: processed 2000000 reads in  0.25 minutes. Time for process last 1000000 reads: 0.10 minutes. Current position:chr10:41906532. End Position:chr10:94000000
+Process 28: processed 3000000 reads in  0.64 minutes. Time for process last 1000000 reads: 0.38 minutes. Current position:chr10:44378283. End Position:chr10:94000000
+Process 28: processed 4000000 reads in  1.18 minutes. Time for process last 1000000 reads: 0.54 minutes. Current position:chr10:49027141. End Position:chr10:94000000
+Process 28: processed 5000000 reads in  1.90 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr10:53950491. End Position:chr10:94000000
+Process 28: processed 6000000 reads in  2.67 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr10:59433755. End Position:chr10:94000000
+Process 28: processed 7000000 reads in  3.47 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:64644560. End Position:chr10:94000000
+Process 28: processed 8000000 reads in  4.26 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr10:69870022. End Position:chr10:94000000
+Process 28: processed 9000000 reads in  5.06 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr10:74584349. End Position:chr10:94000000
+Process 28: processed 10000000 reads in  5.86 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:79195669. End Position:chr10:94000000
+Process 28: processed 11000000 reads in  6.58 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr10:84107355. End Position:chr10:94000000
+Process 28: processed 12000000 reads in  7.29 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chr10:88892496. End Position:chr10:94000000
+Process 28: processed 13000000 reads in  8.08 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr10:93969344. End Position:chr10:94000000
+Process 26: Initiated. Regions:chr9:33600000-chr9:116100000
+Process 26: screening for highly-damaged or misaligned reads
+Process 26: finished screening highly damaged reads in  0.44 minutes. Blacklisted 295594 ( 4.55%) possible highly damaged read and started variant calling.
+Process 26: processed 1000000 reads in  0.73 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr9:38981904. End Position:chr9:116100000
+Process 26: processed 2000000 reads in  0.83 minutes. Time for process last 1000000 reads: 0.10 minutes. Current position:chr9:43445071. End Position:chr9:116100000
+Process 26: processed 3000000 reads in  0.91 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr9:63688336. End Position:chr9:116100000
+Process 26: processed 4000000 reads in  1.15 minutes. Time for process last 1000000 reads: 0.24 minutes. Current position:chr9:69429470. End Position:chr9:116100000
+Process 26: processed 5000000 reads in  1.94 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr9:74585699. End Position:chr9:116100000
+Process 26: processed 6000000 reads in  2.72 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr9:79821330. End Position:chr9:116100000
+Process 26: processed 7000000 reads in  3.48 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr9:85134656. End Position:chr9:116100000
+Process 26: processed 8000000 reads in  4.25 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr9:90005075. End Position:chr9:116100000
+Process 26: processed 9000000 reads in  5.00 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr9:94716222. End Position:chr9:116100000
+Process 26: processed 10000000 reads in  5.76 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr9:99856817. End Position:chr9:116100000
+Process 26: processed 11000000 reads in  6.53 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr9:105519334. End Position:chr9:116100000
+Process 26: processed 12000000 reads in  7.32 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr9:110672236. End Position:chr9:116100000
+Process 1: Initiated. Regions:chr1:62400000-chr1:123300000
+Process 1: screening for highly-damaged or misaligned reads
+Process 1: finished screening highly damaged reads in  0.43 minutes. Blacklisted 299230 ( 4.66%) possible highly damaged read and started variant calling.
+Process 1: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr1:68205835. End Position:chr1:123300000
+Process 1: processed 2000000 reads in  1.57 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:73926460. End Position:chr1:123300000
+Process 1: processed 3000000 reads in  2.34 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:79504988. End Position:chr1:123300000
+Process 1: processed 4000000 reads in  3.08 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr1:84944101. End Position:chr1:123300000
+Process 1: processed 5000000 reads in  3.84 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr1:90342147. End Position:chr1:123300000
+Process 1: processed 6000000 reads in  4.61 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:95824429. End Position:chr1:123300000
+Process 1: processed 7000000 reads in  5.38 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:101447369. End Position:chr1:123300000
+Process 1: processed 8000000 reads in  6.13 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr1:107064568. End Position:chr1:123300000
+Process 1: processed 9000000 reads in  6.88 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr1:112166161. End Position:chr1:123300000
+Process 1: processed 10000000 reads in  7.65 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:117320394. End Position:chr1:123300000
+Process 1: processed 11000000 reads in  8.08 minutes. Time for process last 1000000 reads: 0.43 minutes. Current position:chr1:122340846. End Position:chr1:123300000
+Process 1: processed 12000000 reads in  8.15 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr1:122922725. End Position:chr1:123300000
+Process 7: Initiated. Regions:chr2:70900000-chr2:132900000
+Process 7: screening for highly-damaged or misaligned reads
+Process 7: finished screening highly damaged reads in  0.44 minutes. Blacklisted 377636 ( 5.82%) possible highly damaged read and started variant calling.
+Process 7: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:75851623. End Position:chr2:132900000
+Process 7: processed 2000000 reads in  1.57 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:81229488. End Position:chr2:132900000
+Process 7: processed 3000000 reads in  2.35 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:86310403. End Position:chr2:132900000
+Process 7: processed 4000000 reads in  2.64 minutes. Time for process last 1000000 reads: 0.28 minutes. Current position:chr2:89836997. End Position:chr2:132900000
+Process 7: processed 5000000 reads in  2.72 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr2:93747200. End Position:chr2:132900000
+Process 7: processed 6000000 reads in  3.19 minutes. Time for process last 1000000 reads: 0.47 minutes. Current position:chr2:98520220. End Position:chr2:132900000
+Process 7: processed 7000000 reads in  3.97 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:103605325. End Position:chr2:132900000
+Process 7: processed 8000000 reads in  4.73 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr2:108628100. End Position:chr2:132900000
+Process 7: processed 9000000 reads in  5.28 minutes. Time for process last 1000000 reads: 0.55 minutes. Current position:chr2:113219731. End Position:chr2:132900000
+Process 7: processed 10000000 reads in  6.00 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr2:118354623. End Position:chr2:132900000
+Process 7: processed 11000000 reads in  6.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr2:123346158. End Position:chr2:132900000
+Process 7: processed 12000000 reads in  7.58 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:128290255. End Position:chr2:132900000
+Process 46: Initiated. Regions:chrX:31800000-chrX:93900000
+Process 46: screening for highly-damaged or misaligned reads
+Process 46: finished screening highly damaged reads in  0.43 minutes. Blacklisted 227907 ( 3.51%) possible highly damaged read and started variant calling.
+Process 46: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chrX:36735423. End Position:chrX:93900000
+Process 46: processed 2000000 reads in  1.56 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:41550242. End Position:chrX:93900000
+Process 46: processed 3000000 reads in  2.33 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:46598279. End Position:chrX:93900000
+Process 46: processed 4000000 reads in  3.01 minutes. Time for process last 1000000 reads: 0.68 minutes. Current position:chrX:51466007. End Position:chrX:93900000
+Process 46: processed 5000000 reads in  3.64 minutes. Time for process last 1000000 reads: 0.63 minutes. Current position:chrX:56164384. End Position:chrX:93900000
+Process 46: processed 6000000 reads in  4.02 minutes. Time for process last 1000000 reads: 0.38 minutes. Current position:chrX:60237774. End Position:chrX:93900000
+Process 46: processed 7000000 reads in  4.32 minutes. Time for process last 1000000 reads: 0.30 minutes. Current position:chrX:64279684. End Position:chrX:93900000
+Process 46: processed 8000000 reads in  5.03 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chrX:69191012. End Position:chrX:93900000
+Process 46: processed 9000000 reads in  5.70 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chrX:74118514. End Position:chrX:93900000
+Process 46: processed 10000000 reads in  6.39 minutes. Time for process last 1000000 reads: 0.69 minutes. Current position:chrX:78879093. End Position:chrX:93900000
+Process 46: processed 11000000 reads in  7.13 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chrX:83859062. End Position:chrX:93900000
+Process 46: processed 12000000 reads in  7.90 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chrX:88862796. End Position:chrX:93900000
+Process 34: Initiated. Regions:chr13:16500000-chr13:76100000
+Process 34: screening for highly-damaged or misaligned reads
+Process 34: finished screening highly damaged reads in  0.44 minutes. Blacklisted 274198 ( 4.20%) possible highly damaged read and started variant calling.
+Process 34: processed 1000000 reads in  0.08 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr13:17360041. End Position:chr13:76100000
+Process 34: processed 2000000 reads in  0.16 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr13:17885389. End Position:chr13:76100000
+Process 34: processed 3000000 reads in  0.46 minutes. Time for process last 1000000 reads: 0.30 minutes. Current position:chr13:20671580. End Position:chr13:76100000
+Process 34: processed 4000000 reads in  1.19 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr13:25585382. End Position:chr13:76100000
+Process 34: processed 5000000 reads in  2.00 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr13:30475495. End Position:chr13:76100000
+Process 34: processed 6000000 reads in  2.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr13:36225388. End Position:chr13:76100000
+Process 34: processed 7000000 reads in  3.58 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr13:41678748. End Position:chr13:76100000
+Process 34: processed 8000000 reads in  4.36 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr13:47048084. End Position:chr13:76100000
+Process 34: processed 9000000 reads in  5.12 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr13:52397269. End Position:chr13:76100000
+Process 34: processed 10000000 reads in  5.88 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr13:58172947. End Position:chr13:76100000
+Process 34: processed 11000000 reads in  6.65 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr13:64004723. End Position:chr13:76100000
+Process 34: processed 12000000 reads in  7.44 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr13:69767470. End Position:chr13:76100000
+Process 34: processed 13000000 reads in  8.25 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr13:75718418. End Position:chr13:76100000
+Process 21: Initiated. Regions:chr6:170400000-chr7:63600000
+Process 21: screening for highly-damaged or misaligned reads
+Process 21: finished screening highly damaged reads in  0.43 minutes. Blacklisted 277742 ( 4.28%) possible highly damaged read and started variant calling.
+Process 21: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:4303252. End Position:chr7:63600000
+Process 21: processed 2000000 reads in  1.49 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chr7:9655880. End Position:chr7:63600000
+Process 21: processed 3000000 reads in  2.27 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr7:15627815. End Position:chr7:63600000
+Process 21: processed 4000000 reads in  3.06 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr7:21640469. End Position:chr7:63600000
+Process 21: processed 5000000 reads in  3.84 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:27355456. End Position:chr7:63600000
+Process 21: processed 6000000 reads in  4.60 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr7:32989017. End Position:chr7:63600000
+Process 21: processed 7000000 reads in  5.33 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr7:38487325. End Position:chr7:63600000
+Process 21: processed 8000000 reads in  6.11 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:44077573. End Position:chr7:63600000
+Process 21: processed 9000000 reads in  6.89 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:48889293. End Position:chr7:63600000
+Process 21: processed 10000000 reads in  7.67 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:54059140. End Position:chr7:63600000
+Process 21: processed 11000000 reads in  8.17 minutes. Time for process last 1000000 reads: 0.50 minutes. Current position:chr7:58249998. End Position:chr7:63600000
+Process 21: processed 12000000 reads in  8.25 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr7:60174888. End Position:chr7:63600000
+Process 30: Initiated. Regions:chr11:19700000-chr11:76900000
+Process 30: screening for highly-damaged or misaligned reads
+Process 30: finished screening highly damaged reads in  0.44 minutes. Blacklisted 254768 ( 3.93%) possible highly damaged read and started variant calling.
+Process 30: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr11:24854695. End Position:chr11:76900000
+Process 30: processed 2000000 reads in  1.53 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr11:30239360. End Position:chr11:76900000
+Process 30: processed 3000000 reads in  2.31 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr11:35299061. End Position:chr11:76900000
+Process 30: processed 4000000 reads in  3.08 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr11:40292325. End Position:chr11:76900000
+Process 30: processed 5000000 reads in  3.86 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr11:45162134. End Position:chr11:76900000
+Process 30: processed 6000000 reads in  4.50 minutes. Time for process last 1000000 reads: 0.64 minutes. Current position:chr11:49498545. End Position:chr11:76900000
+Process 30: processed 7000000 reads in  4.73 minutes. Time for process last 1000000 reads: 0.23 minutes. Current position:chr11:52398295. End Position:chr11:76900000
+Process 30: processed 8000000 reads in  4.86 minutes. Time for process last 1000000 reads: 0.13 minutes. Current position:chr11:54934757. End Position:chr11:76900000
+Process 30: processed 9000000 reads in  5.56 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chr11:59062804. End Position:chr11:76900000
+Process 30: processed 10000000 reads in  6.30 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr11:63537034. End Position:chr11:76900000
+Process 30: processed 11000000 reads in  7.05 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr11:68051342. End Position:chr11:76900000
+Process 30: processed 12000000 reads in  7.79 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr11:72236431. End Position:chr11:76900000
+Process 43: Initiated. Regions:chr19:53000000-chr20:51000000
+Process 43: screening for highly-damaged or misaligned reads
+Process 43: finished screening highly damaged reads in  0.45 minutes. Blacklisted 595709 ( 9.16%) possible highly damaged read and started variant calling.
+Process 43: processed 1000000 reads in  0.74 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr19:57600060. End Position:chr20:51000000
+Process 43: processed 2000000 reads in  1.51 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr20:3868849. End Position:chr20:51000000
+Process 43: processed 3000000 reads in  2.30 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr20:9192787. End Position:chr20:51000000
+Process 43: processed 4000000 reads in  3.10 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr20:14610941. End Position:chr20:51000000
+Process 43: processed 5000000 reads in  3.90 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr20:19950358. End Position:chr20:51000000
+Process 43: processed 6000000 reads in  4.68 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr20:24788240. End Position:chr20:51000000
+Process 43: processed 7000000 reads in  4.92 minutes. Time for process last 1000000 reads: 0.24 minutes. Current position:chr20:27483399. End Position:chr20:51000000
+Process 43: processed 8000000 reads in  5.01 minutes. Time for process last 1000000 reads: 0.09 minutes. Current position:chr20:29256823. End Position:chr20:51000000
+Process 43: processed 9000000 reads in  5.14 minutes. Time for process last 1000000 reads: 0.12 minutes. Current position:chr20:31198408. End Position:chr20:51000000
+Process 43: processed 10000000 reads in  5.89 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr20:35768630. End Position:chr20:51000000
+Process 43: processed 11000000 reads in  6.70 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr20:40895223. End Position:chr20:51000000
+Process 43: processed 12000000 reads in  7.50 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr20:45994461. End Position:chr20:51000000
+Process 43: processed 13000000 reads in  8.29 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr20:50979286. End Position:chr20:51000000
+Process 40: Initiated. Regions:chr17:21900000-chr17:82600000
+Process 40: screening for highly-damaged or misaligned reads
+Process 40: finished screening highly damaged reads in  0.47 minutes. Blacklisted 610021 ( 9.05%) possible highly damaged read and started variant calling.
+Process 40: processed 1000000 reads in  0.14 minutes. Time for process last 1000000 reads: 0.14 minutes. Current position:chr17:23256043. End Position:chr17:82600000
+Process 40: processed 2000000 reads in  0.22 minutes. Time for process last 1000000 reads: 0.08 minutes. Current position:chr17:26619974. End Position:chr17:82600000
+Process 40: processed 3000000 reads in  0.80 minutes. Time for process last 1000000 reads: 0.58 minutes. Current position:chr17:30335533. End Position:chr17:82600000
+Process 40: processed 4000000 reads in  1.53 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr17:35471440. End Position:chr17:82600000
+Process 40: processed 5000000 reads in  2.20 minutes. Time for process last 1000000 reads: 0.66 minutes. Current position:chr17:40499662. End Position:chr17:82600000
+Process 40: processed 6000000 reads in  2.94 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr17:45373888. End Position:chr17:82600000
+Process 40: processed 7000000 reads in  3.62 minutes. Time for process last 1000000 reads: 0.68 minutes. Current position:chr17:50405609. End Position:chr17:82600000
+Process 40: processed 8000000 reads in  4.41 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr17:55677338. End Position:chr17:82600000
+Process 40: processed 9000000 reads in  5.17 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr17:60632336. End Position:chr17:82600000
+Process 40: processed 10000000 reads in  5.89 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr17:65587468. End Position:chr17:82600000
+Process 40: processed 11000000 reads in  6.67 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr17:70976265. End Position:chr17:82600000
+Process 40: processed 12000000 reads in  7.47 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr17:75893822. End Position:chr17:82600000
+Process 40: processed 13000000 reads in  8.28 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr17:80461224. End Position:chr17:82600000
+Process 32: Initiated. Regions:chr12:6000000-chr12:70300000
+Process 32: screening for highly-damaged or misaligned reads
+Process 32: finished screening highly damaged reads in  0.43 minutes. Blacklisted 282898 ( 4.35%) possible highly damaged read and started variant calling.
+Process 32: processed 1000000 reads in  0.70 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chr12:11114062. End Position:chr12:70300000
+Process 32: processed 2000000 reads in  1.48 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:16704523. End Position:chr12:70300000
+Process 32: processed 3000000 reads in  2.24 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr12:22063198. End Position:chr12:70300000
+Process 32: processed 4000000 reads in  3.02 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr12:27422808. End Position:chr12:70300000
+Process 32: processed 5000000 reads in  3.76 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr12:32515245. End Position:chr12:70300000
+Process 32: processed 6000000 reads in  4.15 minutes. Time for process last 1000000 reads: 0.39 minutes. Current position:chr12:35683214. End Position:chr12:70300000
+Process 32: processed 7000000 reads in  4.34 minutes. Time for process last 1000000 reads: 0.19 minutes. Current position:chr12:37962590. End Position:chr12:70300000
+Process 32: processed 8000000 reads in  5.08 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr12:43472266. End Position:chr12:70300000
+Process 32: processed 9000000 reads in  5.85 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr12:48755177. End Position:chr12:70300000
+Process 32: processed 10000000 reads in  6.63 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:53719806. End Position:chr12:70300000
+Process 32: processed 11000000 reads in  7.39 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr12:59124440. End Position:chr12:70300000
+Process 32: processed 12000000 reads in  8.13 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr12:64818317. End Position:chr12:70300000
+Process 19: Initiated. Regions:chr6:37200000-chr6:101300000
+Process 19: screening for highly-damaged or misaligned reads
+Process 19: finished screening highly damaged reads in  0.44 minutes. Blacklisted 241657 ( 3.72%) possible highly damaged read and started variant calling.
+Process 19: processed 1000000 reads in  0.81 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr6:42004005. End Position:chr6:101300000
+Process 19: processed 2000000 reads in  1.60 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr6:46925035. End Position:chr6:101300000
+Process 19: processed 3000000 reads in  2.37 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr6:52105100. End Position:chr6:101300000
+Process 19: processed 4000000 reads in  3.12 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr6:57391367. End Position:chr6:101300000
+Process 19: processed 5000000 reads in  3.21 minutes. Time for process last 1000000 reads: 0.09 minutes. Current position:chr6:59628157. End Position:chr6:101300000
+Process 19: processed 6000000 reads in  3.72 minutes. Time for process last 1000000 reads: 0.51 minutes. Current position:chr6:64456680. End Position:chr6:101300000
+Process 19: processed 7000000 reads in  4.46 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr6:69547625. End Position:chr6:101300000
+Process 19: processed 8000000 reads in  5.22 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr6:74862406. End Position:chr6:101300000
+Process 19: processed 9000000 reads in  5.98 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr6:80101447. End Position:chr6:101300000
+Process 19: processed 10000000 reads in  6.71 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr6:85310630. End Position:chr6:101300000
+Process 19: processed 11000000 reads in  7.47 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr6:90438754. End Position:chr6:101300000
+Process 19: processed 12000000 reads in  8.26 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr6:95927832. End Position:chr6:101300000
+Process 36: Initiated. Regions:chr14:53000000-chr15:33300000
+Process 36: screening for highly-damaged or misaligned reads
+Process 36: finished screening highly damaged reads in  0.44 minutes. Blacklisted 289778 ( 4.47%) possible highly damaged read and started variant calling.
+Process 36: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr14:58580675. End Position:chr15:33300000
+Process 36: processed 2000000 reads in  1.57 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr14:64132998. End Position:chr15:33300000
+Process 36: processed 3000000 reads in  2.36 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr14:70116380. End Position:chr15:33300000
+Process 36: processed 4000000 reads in  3.15 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr14:76031732. End Position:chr15:33300000
+Process 36: processed 5000000 reads in  3.94 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr14:81925547. End Position:chr15:33300000
+Process 36: processed 6000000 reads in  4.73 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr14:87923054. End Position:chr15:33300000
+Process 36: processed 7000000 reads in  5.52 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr14:93360175. End Position:chr15:33300000
+Process 36: processed 8000000 reads in  6.34 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr14:98628807. End Position:chr15:33300000
+Process 36: processed 9000000 reads in  7.14 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr14:103543468. End Position:chr15:33300000
+Process 36: processed 10000000 reads in  7.66 minutes. Time for process last 1000000 reads: 0.52 minutes. Current position:chr15:17881292. End Position:chr15:33300000
+Process 36: processed 11000000 reads in  7.80 minutes. Time for process last 1000000 reads: 0.14 minutes. Current position:chr15:23098810. End Position:chr15:33300000
+Process 36: processed 12000000 reads in  8.50 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chr15:28029336. End Position:chr15:33300000
+Process 41: Initiated. Regions:chr17:82600000-chr18:69600000
+Process 41: screening for highly-damaged or misaligned reads
+Process 41: finished screening highly damaged reads in  0.43 minutes. Blacklisted 335722 ( 5.17%) possible highly damaged read and started variant calling.
+Process 41: processed 1000000 reads in  0.66 minutes. Time for process last 1000000 reads: 0.66 minutes. Current position:chr18:3716573. End Position:chr18:69600000
+Process 41: processed 2000000 reads in  1.46 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr18:8910270. End Position:chr18:69600000
+Process 41: processed 3000000 reads in  2.22 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr18:14014953. End Position:chr18:69600000
+Process 41: processed 4000000 reads in  2.32 minutes. Time for process last 1000000 reads: 0.10 minutes. Current position:chr18:18820106. End Position:chr18:69600000
+Process 41: processed 5000000 reads in  2.82 minutes. Time for process last 1000000 reads: 0.50 minutes. Current position:chr18:24165013. End Position:chr18:69600000
+Process 41: processed 6000000 reads in  3.61 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr18:29804421. End Position:chr18:69600000
+Process 41: processed 7000000 reads in  4.40 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr18:35566873. End Position:chr18:69600000
+Process 41: processed 8000000 reads in  5.19 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr18:41283087. End Position:chr18:69600000
+Process 41: processed 9000000 reads in  5.99 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr18:46887219. End Position:chr18:69600000
+Process 41: processed 10000000 reads in  6.77 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr18:52333411. End Position:chr18:69600000
+Process 41: processed 11000000 reads in  7.56 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr18:58046888. End Position:chr18:69600000
+Process 41: processed 12000000 reads in  8.35 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr18:63715088. End Position:chr18:69600000
+Process 24: Initiated. Regions:chr8:43000000-chr8:107700000
+Process 24: screening for highly-damaged or misaligned reads
+Process 24: finished screening highly damaged reads in  0.43 minutes. Blacklisted 245926 ( 3.78%) possible highly damaged read and started variant calling.
+Process 24: processed 1000000 reads in  0.26 minutes. Time for process last 1000000 reads: 0.26 minutes. Current position:chr8:46287079. End Position:chr8:107700000
+Process 24: processed 2000000 reads in  1.02 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr8:51120311. End Position:chr8:107700000
+Process 24: processed 3000000 reads in  1.80 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr8:56181565. End Position:chr8:107700000
+Process 24: processed 4000000 reads in  2.55 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr8:61124392. End Position:chr8:107700000
+Process 24: processed 5000000 reads in  3.33 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr8:66307184. End Position:chr8:107700000
+Process 24: processed 6000000 reads in  4.10 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr8:71568982. End Position:chr8:107700000
+Process 24: processed 7000000 reads in  4.86 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr8:76675296. End Position:chr8:107700000
+Process 24: processed 8000000 reads in  5.64 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr8:81785803. End Position:chr8:107700000
+Process 24: processed 9000000 reads in  6.30 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr8:86364622. End Position:chr8:107700000
+Process 24: processed 10000000 reads in  7.06 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr8:91839104. End Position:chr8:107700000
+Process 24: processed 11000000 reads in  7.85 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr8:97072864. End Position:chr8:107700000
+Process 24: processed 12000000 reads in  8.62 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr8:102220032. End Position:chr8:107700000
+Process 22: Initiated. Regions:chr7:63600000-chr7:134900000
+Process 22: screening for highly-damaged or misaligned reads
+Process 22: finished screening highly damaged reads in  0.44 minutes. Blacklisted 277692 ( 4.28%) possible highly damaged read and started variant calling.
+Process 22: processed 1000000 reads in  0.56 minutes. Time for process last 1000000 reads: 0.56 minutes. Current position:chr7:68214853. End Position:chr7:134900000
+Process 22: processed 2000000 reads in  1.32 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr7:72905948. End Position:chr7:134900000
+Process 22: processed 3000000 reads in  1.82 minutes. Time for process last 1000000 reads: 0.50 minutes. Current position:chr7:77598659. End Position:chr7:134900000
+Process 22: processed 4000000 reads in  2.60 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:83475916. End Position:chr7:134900000
+Process 22: processed 5000000 reads in  3.37 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr7:89350808. End Position:chr7:134900000
+Process 22: processed 6000000 reads in  4.13 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr7:95180922. End Position:chr7:134900000
+Process 22: processed 7000000 reads in  4.87 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr7:100361656. End Position:chr7:134900000
+Process 22: processed 8000000 reads in  5.54 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr7:105405887. End Position:chr7:134900000
+Process 22: processed 9000000 reads in  6.31 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr7:111352523. End Position:chr7:134900000
+Process 22: processed 10000000 reads in  7.09 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr7:117398749. End Position:chr7:134900000
+Process 22: processed 11000000 reads in  7.88 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr7:123139772. End Position:chr7:134900000
+Process 22: processed 12000000 reads in  8.65 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr7:129156269. End Position:chr7:134900000
+Process 11: Initiated. Regions:chr3:91900000-chr3:158300000
+Process 11: screening for highly-damaged or misaligned reads
+Process 11: finished screening highly damaged reads in  0.44 minutes. Blacklisted 290077 ( 4.46%) possible highly damaged read and started variant calling.
+Process 11: processed 1000000 reads in  0.11 minutes. Time for process last 1000000 reads: 0.11 minutes. Current position:chr3:94032136. End Position:chr3:158300000
+Process 11: processed 2000000 reads in  0.89 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:99576601. End Position:chr3:158300000
+Process 11: processed 3000000 reads in  1.68 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:105101395. End Position:chr3:158300000
+Process 11: processed 4000000 reads in  2.46 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:110897925. End Position:chr3:158300000
+Process 11: processed 5000000 reads in  3.26 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:116780125. End Position:chr3:158300000
+Process 11: processed 6000000 reads in  4.04 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:122378673. End Position:chr3:158300000
+Process 11: processed 7000000 reads in  4.80 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:127250056. End Position:chr3:158300000
+Process 11: processed 8000000 reads in  5.57 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:132244085. End Position:chr3:158300000
+Process 11: processed 9000000 reads in  6.36 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:137326031. End Position:chr3:158300000
+Process 11: processed 10000000 reads in  7.14 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:142110745. End Position:chr3:158300000
+Process 11: processed 11000000 reads in  7.92 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:147520650. End Position:chr3:158300000
+Process 11: processed 12000000 reads in  8.70 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:153012498. End Position:chr3:158300000
+Process 11: processed 13000000 reads in  9.47 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:158258910. End Position:chr3:158300000
+Process 47: Initiated. Regions:chrX:93900000-chrX:156040895
+Process 47: screening for highly-damaged or misaligned reads
+Process 47: finished screening highly damaged reads in  0.44 minutes. Blacklisted 229245 ( 3.53%) possible highly damaged read and started variant calling.
+Process 47: processed 1000000 reads in  0.77 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:98770386. End Position:chrX:156040895
+Process 47: processed 2000000 reads in  1.47 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chrX:103448232. End Position:chrX:156040895
+Process 47: processed 3000000 reads in  2.19 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chrX:108286215. End Position:chrX:156040895
+Process 47: processed 4000000 reads in  2.94 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chrX:113226252. End Position:chrX:156040895
+Process 47: processed 5000000 reads in  3.68 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chrX:118228642. End Position:chrX:156040895
+Process 47: processed 6000000 reads in  4.41 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chrX:122949936. End Position:chrX:156040895
+Process 47: processed 7000000 reads in  5.17 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chrX:127821508. End Position:chrX:156040895
+Process 47: processed 8000000 reads in  5.93 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chrX:132663540. End Position:chrX:156040895
+Process 47: processed 9000000 reads in  6.64 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chrX:137171971. End Position:chrX:156040895
+Process 47: processed 10000000 reads in  7.35 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chrX:142046551. End Position:chrX:156040895
+Process 47: processed 11000000 reads in  8.10 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chrX:146976537. End Position:chrX:156040895
+Process 47: processed 12000000 reads in  8.84 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chrX:151533912. End Position:chrX:156040895
+Process 47: processed 13000000 reads in  9.50 minutes. Time for process last 1000000 reads: 0.66 minutes. Current position:chrX:156022383. End Position:chrX:156040895
+Process 4: Initiated. Regions:chr2:1800000-chr2:32900000
+Process 4: screening for highly-damaged or misaligned reads
+Process 4: finished screening highly damaged reads in  0.21 minutes. Blacklisted 123720 ( 3.97%) possible highly damaged read and started variant calling.
+Process 4: processed 1000000 reads in  0.82 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr2:6703980. End Position:chr2:32900000
+Process 4: processed 2000000 reads in  1.63 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr2:11596640. End Position:chr2:32900000
+Process 4: processed 3000000 reads in  2.43 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr2:16682133. End Position:chr2:32900000
+Process 4: processed 4000000 reads in  3.21 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:21751920. End Position:chr2:32900000
+Process 4: processed 5000000 reads in  4.00 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:26768736. End Position:chr2:32900000
+Process 4: processed 6000000 reads in  4.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr2:31810118. End Position:chr2:32900000
+Process 33: Initiated. Regions:chr12:70300000-chr13:16500000
+Process 33: screening for highly-damaged or misaligned reads
+Process 33: finished screening highly damaged reads in  0.43 minutes. Blacklisted 288247 ( 4.46%) possible highly damaged read and started variant calling.
+Process 33: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:75796727. End Position:chr13:16500000
+Process 33: processed 2000000 reads in  1.56 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:81297940. End Position:chr13:16500000
+Process 33: processed 3000000 reads in  2.33 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr12:86899941. End Position:chr13:16500000
+Process 33: processed 4000000 reads in  3.11 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:92739215. End Position:chr13:16500000
+Process 33: processed 5000000 reads in  3.89 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:98442911. End Position:chr13:16500000
+Process 33: processed 6000000 reads in  4.67 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:103735875. End Position:chr13:16500000
+Process 33: processed 7000000 reads in  5.47 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr12:108748123. End Position:chr13:16500000
+Process 33: processed 8000000 reads in  6.28 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr12:113340065. End Position:chr13:16500000
+Process 33: processed 9000000 reads in  7.10 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr12:118111677. End Position:chr13:16500000
+Process 33: processed 10000000 reads in  7.89 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr12:122731160. End Position:chr13:16500000
+Process 33: processed 11000000 reads in  8.70 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr12:127421386. End Position:chr13:16500000
+Process 33: processed 12000000 reads in  9.48 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr12:132016277. End Position:chr13:16500000
+Process 6: Initiated. Regions:chr2:32900000-chr2:70900000
+Process 6: screening for highly-damaged or misaligned reads
+Process 6: finished screening highly damaged reads in  1.23 minutes. Blacklisted 3679814 ( 22.46%) possible highly damaged read and started variant calling.
+Process 6: processed 1000000 reads in  0.04 minutes. Time for process last 1000000 reads: 0.04 minutes. Current position:chr2:32916255. End Position:chr2:70900000
+Process 6: processed 2000000 reads in  0.06 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916256. End Position:chr2:70900000
+Process 6: processed 3000000 reads in  0.09 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916258. End Position:chr2:70900000
+Process 6: processed 4000000 reads in  0.12 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916259. End Position:chr2:70900000
+Process 6: processed 5000000 reads in  0.15 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916260. End Position:chr2:70900000
+Process 6: processed 6000000 reads in  0.18 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916261. End Position:chr2:70900000
+Process 6: processed 7000000 reads in  0.21 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916289. End Position:chr2:70900000
+Process 6: processed 8000000 reads in  0.24 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916404. End Position:chr2:70900000
+Process 6: processed 9000000 reads in  0.27 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916421. End Position:chr2:70900000
+Process 6: processed 10000000 reads in  0.30 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916421. End Position:chr2:70900000
+Process 6: processed 11000000 reads in  0.32 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916421. End Position:chr2:70900000
+Process 6: processed 12000000 reads in  0.36 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916458. End Position:chr2:70900000
+Process 6: processed 13000000 reads in  0.39 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916482. End Position:chr2:70900000
+Process 6: processed 14000000 reads in  0.42 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916483. End Position:chr2:70900000
+Process 6: processed 15000000 reads in  0.45 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 16000000 reads in  0.48 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 17000000 reads in  0.50 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 18000000 reads in  0.53 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 19000000 reads in  0.56 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 20000000 reads in  0.59 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 21000000 reads in  0.62 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 22000000 reads in  0.65 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 23000000 reads in  0.68 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 24000000 reads in  0.71 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916485. End Position:chr2:70900000
+Process 6: processed 25000000 reads in  0.74 minutes. Time for process last 1000000 reads: 0.03 minutes. Current position:chr2:32916488. End Position:chr2:70900000
+Process 6: processed 26000000 reads in  1.19 minutes. Time for process last 1000000 reads: 0.46 minutes. Current position:chr2:35978910. End Position:chr2:70900000
+Process 6: processed 27000000 reads in  1.97 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:41372122. End Position:chr2:70900000
+Process 6: processed 28000000 reads in  2.77 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:46843051. End Position:chr2:70900000
+Process 6: processed 29000000 reads in  3.56 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:52102302. End Position:chr2:70900000
+Process 6: processed 30000000 reads in  4.34 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:57239543. End Position:chr2:70900000
+Process 6: processed 31000000 reads in  5.13 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr2:62288746. End Position:chr2:70900000
+Process 6: processed 32000000 reads in  5.91 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr2:67274704. End Position:chr2:70900000
+Process 0: Initiated. Regions:chr1:0-chr1:62400000
+Process 0: screening for highly-damaged or misaligned reads
+Process 0: finished screening highly damaged reads in  0.43 minutes. Blacklisted 329521 ( 5.07%) possible highly damaged read and started variant calling.
+Process 0: processed 1000000 reads in  0.44 minutes. Time for process last 1000000 reads: 0.44 minutes. Current position:chr1:3191154. End Position:chr1:62400000
+Process 0: processed 2000000 reads in  1.25 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr1:7453778. End Position:chr1:62400000
+Process 0: processed 3000000 reads in  2.06 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr1:12479250. End Position:chr1:62400000
+Process 0: processed 4000000 reads in  2.67 minutes. Time for process last 1000000 reads: 0.61 minutes. Current position:chr1:16992995. End Position:chr1:62400000
+Process 0: processed 5000000 reads in  3.47 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr1:21829021. End Position:chr1:62400000
+Process 0: processed 6000000 reads in  4.25 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:26777662. End Position:chr1:62400000
+Process 0: processed 7000000 reads in  5.03 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:31658705. End Position:chr1:62400000
+Process 0: processed 8000000 reads in  5.83 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr1:36531167. End Position:chr1:62400000
+Process 0: processed 9000000 reads in  6.62 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr1:41380015. End Position:chr1:62400000
+Process 0: processed 10000000 reads in  7.42 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr1:46304466. End Position:chr1:62400000
+Process 0: processed 11000000 reads in  8.18 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr1:51819472. End Position:chr1:62400000
+Process 0: processed 12000000 reads in  8.98 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr1:57059428. End Position:chr1:62400000
+Process 35: Initiated. Regions:chr13:76100000-chr14:53000000
+Process 35: screening for highly-damaged or misaligned reads
+Process 35: finished screening highly damaged reads in  0.43 minutes. Blacklisted 266689 ( 4.11%) possible highly damaged read and started variant calling.
+Process 35: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr13:81956635. End Position:chr14:53000000
+Process 35: processed 2000000 reads in  1.58 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr13:87744539. End Position:chr14:53000000
+Process 35: processed 3000000 reads in  2.36 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr13:93621745. End Position:chr14:53000000
+Process 35: processed 4000000 reads in  3.16 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr13:99254294. End Position:chr14:53000000
+Process 35: processed 5000000 reads in  3.97 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr13:104915600. End Position:chr14:53000000
+Process 35: processed 6000000 reads in  4.77 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr13:110392435. End Position:chr14:53000000
+Process 35: processed 7000000 reads in  5.43 minutes. Time for process last 1000000 reads: 0.65 minutes. Current position:chr14:18970074. End Position:chr14:53000000
+Process 35: processed 8000000 reads in  6.01 minutes. Time for process last 1000000 reads: 0.58 minutes. Current position:chr14:23705423. End Position:chr14:53000000
+Process 35: processed 9000000 reads in  6.76 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr14:29760004. End Position:chr14:53000000
+Process 35: processed 10000000 reads in  7.53 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr14:35665909. End Position:chr14:53000000
+Process 35: processed 11000000 reads in  8.30 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr14:41600211. End Position:chr14:53000000
+Process 35: processed 12000000 reads in  9.04 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr14:47389805. End Position:chr14:53000000
+Process 15: Initiated. Regions:chr4:148300000-chr5:25900000
+Process 15: screening for highly-damaged or misaligned reads
+Process 15: finished screening highly damaged reads in  0.44 minutes. Blacklisted 326799 ( 5.03%) possible highly damaged read and started variant calling.
+Process 15: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr4:153868082. End Position:chr5:25900000
+Process 15: processed 2000000 reads in  1.56 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:159087577. End Position:chr5:25900000
+Process 15: processed 3000000 reads in  2.32 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:164625854. End Position:chr5:25900000
+Process 15: processed 4000000 reads in  3.08 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:170049288. End Position:chr5:25900000
+Process 15: processed 5000000 reads in  3.86 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:175644367. End Position:chr5:25900000
+Process 15: processed 6000000 reads in  4.65 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr4:181371746. End Position:chr5:25900000
+Process 15: processed 7000000 reads in  5.44 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr4:186786846. End Position:chr5:25900000
+Process 15: processed 8000000 reads in  6.01 minutes. Time for process last 1000000 reads: 0.57 minutes. Current position:chr5:665301. End Position:chr5:25900000
+Process 15: processed 9000000 reads in  6.77 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:5021882. End Position:chr5:25900000
+Process 15: processed 10000000 reads in  7.57 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr5:9944123. End Position:chr5:25900000
+Process 15: processed 11000000 reads in  8.39 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr5:14990438. End Position:chr5:25900000
+Process 15: processed 12000000 reads in  9.15 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr5:20299905. End Position:chr5:25900000
+Process 14: Initiated. Regions:chr4:80200000-chr4:148300000
+Process 14: screening for highly-damaged or misaligned reads
+Process 14: finished screening highly damaged reads in  0.44 minutes. Blacklisted 236863 ( 3.65%) possible highly damaged read and started variant calling.
+Process 14: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:85230409. End Position:chr4:148300000
+Process 14: processed 2000000 reads in  1.54 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:90574755. End Position:chr4:148300000
+Process 14: processed 3000000 reads in  2.31 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:95941539. End Position:chr4:148300000
+Process 14: processed 4000000 reads in  3.07 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:101159608. End Position:chr4:148300000
+Process 14: processed 5000000 reads in  3.82 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr4:106535899. End Position:chr4:148300000
+Process 14: processed 6000000 reads in  4.58 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:111790156. End Position:chr4:148300000
+Process 14: processed 7000000 reads in  5.35 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:117013720. End Position:chr4:148300000
+Process 14: processed 8000000 reads in  6.07 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr4:122137187. End Position:chr4:148300000
+Process 14: processed 9000000 reads in  6.83 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr4:127363018. End Position:chr4:148300000
+Process 14: processed 10000000 reads in  7.54 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chr4:132359868. End Position:chr4:148300000
+Process 14: processed 11000000 reads in  8.31 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:137572262. End Position:chr4:148300000
+Process 14: processed 12000000 reads in  9.08 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr4:142975119. End Position:chr4:148300000
+Process 12: Initiated. Regions:chr3:158300000-chr4:27700000
+Process 12: screening for highly-damaged or misaligned reads
+Process 12: finished screening highly damaged reads in  0.43 minutes. Blacklisted 260775 ( 4.01%) possible highly damaged read and started variant calling.
+Process 12: processed 1000000 reads in  0.77 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:163661017. End Position:chr4:27700000
+Process 12: processed 2000000 reads in  1.53 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr3:169219300. End Position:chr4:27700000
+Process 12: processed 3000000 reads in  2.32 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:174774157. End Position:chr4:27700000
+Process 12: processed 4000000 reads in  3.09 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:180214585. End Position:chr4:27700000
+Process 12: processed 5000000 reads in  3.87 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:185636422. End Position:chr4:27700000
+Process 12: processed 6000000 reads in  4.66 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:191106659. End Position:chr4:27700000
+Process 12: processed 7000000 reads in  5.43 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr3:196346172. End Position:chr4:27700000
+Process 12: processed 8000000 reads in  6.14 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr4:2677710. End Position:chr4:27700000
+Process 12: processed 9000000 reads in  6.88 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr4:7071233. End Position:chr4:27700000
+Process 12: processed 10000000 reads in  7.54 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr4:11723739. End Position:chr4:27700000
+Process 12: processed 11000000 reads in  8.33 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:17029880. End Position:chr4:27700000
+Process 12: processed 12000000 reads in  9.10 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr4:22506066. End Position:chr4:27700000
+Process 45: Initiated. Regions:chr22:20700000-chrX:31800000
+Process 45: screening for highly-damaged or misaligned reads
+Process 45: finished screening highly damaged reads in  0.43 minutes. Blacklisted 288835 ( 4.45%) possible highly damaged read and started variant calling.
+Process 45: processed 1000000 reads in  0.65 minutes. Time for process last 1000000 reads: 0.65 minutes. Current position:chr22:25278362. End Position:chrX:31800000
+Process 45: processed 2000000 reads in  1.42 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr22:30078572. End Position:chrX:31800000
+Process 45: processed 3000000 reads in  2.21 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr22:34699886. End Position:chrX:31800000
+Process 45: processed 4000000 reads in  2.99 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr22:39319246. End Position:chrX:31800000
+Process 45: processed 5000000 reads in  3.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr22:43992541. End Position:chrX:31800000
+Process 45: processed 6000000 reads in  4.60 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr22:48537837. End Position:chrX:31800000
+Process 45: processed 7000000 reads in  5.35 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chrX:2768864. End Position:chrX:31800000
+Process 45: processed 8000000 reads in  6.08 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chrX:7513665. End Position:chrX:31800000
+Process 45: processed 9000000 reads in  6.85 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:11900046. End Position:chrX:31800000
+Process 45: processed 10000000 reads in  7.63 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:16713378. End Position:chrX:31800000
+Process 45: processed 11000000 reads in  8.40 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chrX:21602075. End Position:chrX:31800000
+Process 45: processed 12000000 reads in  9.17 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chrX:26685844. End Position:chrX:31800000
+Process 37: Initiated. Regions:chr15:33300000-chr15:97900000
+Process 37: screening for highly-damaged or misaligned reads
+Process 37: finished screening highly damaged reads in  0.44 minutes. Blacklisted 279202 ( 4.30%) possible highly damaged read and started variant calling.
+Process 37: processed 1000000 reads in  0.76 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr15:38898966. End Position:chr15:97900000
+Process 37: processed 2000000 reads in  1.53 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr15:43923963. End Position:chr15:97900000
+Process 37: processed 3000000 reads in  2.28 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr15:48965336. End Position:chr15:97900000
+Process 37: processed 4000000 reads in  3.06 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr15:54122577. End Position:chr15:97900000
+Process 37: processed 5000000 reads in  3.84 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr15:59401948. End Position:chr15:97900000
+Process 37: processed 6000000 reads in  4.63 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr15:64529216. End Position:chr15:97900000
+Process 37: processed 7000000 reads in  5.42 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr15:69307592. End Position:chr15:97900000
+Process 37: processed 8000000 reads in  6.20 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr15:74168436. End Position:chr15:97900000
+Process 37: processed 9000000 reads in  6.94 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr15:78960555. End Position:chr15:97900000
+Process 37: processed 10000000 reads in  7.68 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr15:83589456. End Position:chr15:97900000
+Process 37: processed 11000000 reads in  8.39 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr15:88432499. End Position:chr15:97900000
+Process 37: processed 12000000 reads in  9.18 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr15:92990739. End Position:chr15:97900000
+Process 29: Initiated. Regions:chr10:94000000-chr11:19700000
+Process 29: screening for highly-damaged or misaligned reads
+Process 29: finished screening highly damaged reads in  0.43 minutes. Blacklisted 370158 ( 5.70%) possible highly damaged read and started variant calling.
+Process 29: processed 1000000 reads in  0.78 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr10:98820770. End Position:chr11:19700000
+Process 29: processed 2000000 reads in  1.56 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr10:103422531. End Position:chr11:19700000
+Process 29: processed 3000000 reads in  2.36 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:108010736. End Position:chr11:19700000
+Process 29: processed 4000000 reads in  3.13 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr10:112623822. End Position:chr11:19700000
+Process 29: processed 5000000 reads in  3.93 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:117228009. End Position:chr11:19700000
+Process 29: processed 6000000 reads in  4.72 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:121706432. End Position:chr11:19700000
+Process 29: processed 7000000 reads in  5.52 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:125990360. End Position:chr11:19700000
+Process 29: processed 8000000 reads in  6.34 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr10:130274380. End Position:chr11:19700000
+Process 29: processed 9000000 reads in  7.00 minutes. Time for process last 1000000 reads: 0.66 minutes. Current position:chr10:133689108. End Position:chr11:19700000
+Process 29: processed 10000000 reads in  7.67 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr11:4278878. End Position:chr11:19700000
+Process 29: processed 11000000 reads in  8.42 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr11:9559460. End Position:chr11:19700000
+Process 29: processed 12000000 reads in  9.20 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr11:14703118. End Position:chr11:19700000
+Process 39: Initiated. Regions:chr16:55200000-chr17:21900000
+Process 39: screening for highly-damaged or misaligned reads
+Process 39: finished screening highly damaged reads in  0.42 minutes. Blacklisted 314117 ( 5.03%) possible highly damaged read and started variant calling.
+Process 39: processed 1000000 reads in  0.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr16:59848527. End Position:chr17:21900000
+Process 39: processed 2000000 reads in  1.59 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr16:64932871. End Position:chr17:21900000
+Process 39: processed 3000000 reads in  2.39 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr16:69467286. End Position:chr17:21900000
+Process 39: processed 4000000 reads in  3.06 minutes. Time for process last 1000000 reads: 0.67 minutes. Current position:chr16:73974150. End Position:chr17:21900000
+Process 39: processed 5000000 reads in  3.83 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr16:78404975. End Position:chr17:21900000
+Process 39: processed 6000000 reads in  4.64 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr16:82856168. End Position:chr17:21900000
+Process 39: processed 7000000 reads in  5.46 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr16:87056262. End Position:chr17:21900000
+Process 39: processed 8000000 reads in  6.18 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr17:1389610. End Position:chr17:21900000
+Process 39: processed 9000000 reads in  6.94 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr17:6056492. End Position:chr17:21900000
+Process 39: processed 10000000 reads in  7.72 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr17:10791772. End Position:chr17:21900000
+Process 39: processed 11000000 reads in  8.49 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr17:15694847. End Position:chr17:21900000
+Process 39: processed 12000000 reads in  9.10 minutes. Time for process last 1000000 reads: 0.61 minutes. Current position:chr17:19989937. End Position:chr17:21900000
+Process 23: Initiated. Regions:chr7:134900000-chr8:43000000
+Process 23: screening for highly-damaged or misaligned reads
+Process 23: finished screening highly damaged reads in  0.43 minutes. Blacklisted 288146 ( 4.44%) possible highly damaged read and started variant calling.
+Process 23: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr7:140475308. End Position:chr8:43000000
+Process 23: processed 2000000 reads in  1.50 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chr7:146296074. End Position:chr8:43000000
+Process 23: processed 3000000 reads in  2.23 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr7:151802563. End Position:chr8:43000000
+Process 23: processed 4000000 reads in  2.96 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr7:156967604. End Position:chr8:43000000
+Process 23: processed 5000000 reads in  3.68 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr8:2905459. End Position:chr8:43000000
+Process 23: processed 6000000 reads in  4.32 minutes. Time for process last 1000000 reads: 0.64 minutes. Current position:chr8:8203638. End Position:chr8:43000000
+Process 23: processed 7000000 reads in  5.02 minutes. Time for process last 1000000 reads: 0.71 minutes. Current position:chr8:13070713. End Position:chr8:43000000
+Process 23: processed 8000000 reads in  5.80 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr8:18230154. End Position:chr8:43000000
+Process 23: processed 9000000 reads in  6.60 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr8:23192200. End Position:chr8:43000000
+Process 23: processed 10000000 reads in  7.39 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr8:27970629. End Position:chr8:43000000
+Process 23: processed 11000000 reads in  8.18 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr8:33187204. End Position:chr8:43000000
+Process 23: processed 12000000 reads in  8.96 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr8:38238738. End Position:chr8:43000000
+Process 3: Initiated. Regions:chr1:178200000-chr2:1800000
+Process 3: screening for highly-damaged or misaligned reads
+Process 3: finished screening highly damaged reads in  0.44 minutes. Blacklisted 263236 ( 4.05%) possible highly damaged read and started variant calling.
+Process 3: processed 1000000 reads in  0.79 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr1:183711981. End Position:chr2:1800000
+Process 3: processed 2000000 reads in  1.57 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:189742944. End Position:chr2:1800000
+Process 3: processed 3000000 reads in  2.36 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:195563109. End Position:chr2:1800000
+Process 3: processed 4000000 reads in  3.13 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:201562628. End Position:chr2:1800000
+Process 3: processed 5000000 reads in  3.89 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr1:206990551. End Position:chr2:1800000
+Process 3: processed 6000000 reads in  4.67 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:212900463. End Position:chr2:1800000
+Process 3: processed 7000000 reads in  5.47 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr1:219152182. End Position:chr2:1800000
+Process 3: processed 8000000 reads in  6.23 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr1:224795486. End Position:chr2:1800000
+Process 3: processed 9000000 reads in  6.99 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr1:229777947. End Position:chr2:1800000
+Process 3: processed 10000000 reads in  7.77 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr1:234743384. End Position:chr2:1800000
+Process 3: processed 11000000 reads in  8.57 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr1:240095237. End Position:chr2:1800000
+Process 3: processed 12000000 reads in  9.31 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr1:245715730. End Position:chr2:1800000
+Process 17: Initiated. Regions:chr5:86100000-chr5:155400000
+Process 17: screening for highly-damaged or misaligned reads
+Process 17: finished screening highly damaged reads in  0.44 minutes. Blacklisted 239793 ( 3.69%) possible highly damaged read and started variant calling.
+Process 17: processed 1000000 reads in  0.77 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:91604417. End Position:chr5:155400000
+Process 17: processed 2000000 reads in  1.54 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:97368848. End Position:chr5:155400000
+Process 17: processed 3000000 reads in  2.26 minutes. Time for process last 1000000 reads: 0.72 minutes. Current position:chr5:102818069. End Position:chr5:155400000
+Process 17: processed 4000000 reads in  3.04 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr5:108491123. End Position:chr5:155400000
+Process 17: processed 5000000 reads in  3.80 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr5:113808128. End Position:chr5:155400000
+Process 17: processed 6000000 reads in  4.56 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr5:119083715. End Position:chr5:155400000
+Process 17: processed 7000000 reads in  5.32 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr5:124807436. End Position:chr5:155400000
+Process 17: processed 8000000 reads in  6.09 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr5:130571898. End Position:chr5:155400000
+Process 17: processed 9000000 reads in  6.87 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr5:135410217. End Position:chr5:155400000
+Process 17: processed 10000000 reads in  7.67 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr5:140537511. End Position:chr5:155400000
+Process 17: processed 11000000 reads in  8.45 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr5:145532780. End Position:chr5:155400000
+Process 17: processed 12000000 reads in  9.24 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr5:150493309. End Position:chr5:155400000
+Process 10: Initiated. Regions:chr3:27200000-chr3:91900000
+Process 10: screening for highly-damaged or misaligned reads
+Process 10: finished screening highly damaged reads in  0.43 minutes. Blacklisted 310635 ( 4.79%) possible highly damaged read and started variant calling.
+Process 10: processed 1000000 reads in  0.80 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:32460166. End Position:chr3:91900000
+Process 10: processed 2000000 reads in  1.57 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr3:37353082. End Position:chr3:91900000
+Process 10: processed 3000000 reads in  2.36 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:42186713. End Position:chr3:91900000
+Process 10: processed 4000000 reads in  3.16 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:46823255. End Position:chr3:91900000
+Process 10: processed 5000000 reads in  3.93 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:51140921. End Position:chr3:91900000
+Process 10: processed 6000000 reads in  4.73 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:55788665. End Position:chr3:91900000
+Process 10: processed 7000000 reads in  5.52 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr3:60962374. End Position:chr3:91900000
+Process 10: processed 8000000 reads in  6.32 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:66282842. End Position:chr3:91900000
+Process 10: processed 9000000 reads in  7.12 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:71599694. End Position:chr3:91900000
+Process 10: processed 10000000 reads in  7.80 minutes. Time for process last 1000000 reads: 0.69 minutes. Current position:chr3:76794991. End Position:chr3:91900000
+Process 10: processed 11000000 reads in  8.60 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr3:82576435. End Position:chr3:91900000
+Process 10: processed 12000000 reads in  9.38 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr3:88165978. End Position:chr3:91900000
+Process 27: Initiated. Regions:chr9:116100000-chr10:39200000
+Process 27: screening for highly-damaged or misaligned reads
+Process 27: finished screening highly damaged reads in  0.43 minutes. Blacklisted 318255 ( 4.91%) possible highly damaged read and started variant calling.
+Process 27: processed 1000000 reads in  0.82 minutes. Time for process last 1000000 reads: 0.82 minutes. Current position:chr9:121413128. End Position:chr10:39200000
+Process 27: processed 2000000 reads in  1.62 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr9:126694000. End Position:chr10:39200000
+Process 27: processed 3000000 reads in  2.42 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr9:131400892. End Position:chr10:39200000
+Process 27: processed 4000000 reads in  3.22 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr9:135925991. End Position:chr10:39200000
+Process 27: processed 5000000 reads in  3.98 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr10:2101053. End Position:chr10:39200000
+Process 27: processed 6000000 reads in  4.76 minutes. Time for process last 1000000 reads: 0.79 minutes. Current position:chr10:6646419. End Position:chr10:39200000
+Process 27: processed 7000000 reads in  5.56 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr10:11388965. End Position:chr10:39200000
+Process 27: processed 8000000 reads in  6.34 minutes. Time for process last 1000000 reads: 0.78 minutes. Current position:chr10:16085088. End Position:chr10:39200000
+Process 27: processed 9000000 reads in  7.12 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr10:21059964. End Position:chr10:39200000
+Process 27: processed 10000000 reads in  7.89 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr10:25811266. End Position:chr10:39200000
+Process 27: processed 11000000 reads in  8.64 minutes. Time for process last 1000000 reads: 0.75 minutes. Current position:chr10:30506076. End Position:chr10:39200000
+Process 27: processed 12000000 reads in  9.40 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr10:35294961. End Position:chr10:39200000
+Process 42: Initiated. Regions:chr18:69600000-chr19:53000000
+Process 42: screening for highly-damaged or misaligned reads
+Process 42: finished screening highly damaged reads in  0.43 minutes. Blacklisted 363662 ( 5.60%) possible highly damaged read and started variant calling.
+Process 42: processed 1000000 reads in  0.81 minutes. Time for process last 1000000 reads: 0.81 minutes. Current position:chr18:75406752. End Position:chr19:53000000
+Process 42: processed 2000000 reads in  1.61 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr19:90394. End Position:chr19:53000000
+Process 42: processed 3000000 reads in  2.38 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr19:4745958. End Position:chr19:53000000
+Process 42: processed 4000000 reads in  3.12 minutes. Time for process last 1000000 reads: 0.74 minutes. Current position:chr19:9145357. End Position:chr19:53000000
+Process 42: processed 5000000 reads in  3.88 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr19:13734899. End Position:chr19:53000000
+Process 42: processed 6000000 reads in  4.65 minutes. Time for process last 1000000 reads: 0.77 minutes. Current position:chr19:18215422. End Position:chr19:53000000
+Process 42: processed 7000000 reads in  5.35 minutes. Time for process last 1000000 reads: 0.70 minutes. Current position:chr19:22899273. End Position:chr19:53000000
+Process 42: processed 8000000 reads in  6.04 minutes. Time for process last 1000000 reads: 0.69 minutes. Current position:chr19:29582925. End Position:chr19:53000000
+Process 42: processed 9000000 reads in  6.85 minutes. Time for process last 1000000 reads: 0.80 minutes. Current position:chr19:34062641. End Position:chr19:53000000
+Process 42: processed 10000000 reads in  7.57 minutes. Time for process last 1000000 reads: 0.73 minutes. Current position:chr19:38655674. End Position:chr19:53000000
+Process 42: processed 11000000 reads in  8.23 minutes. Time for process last 1000000 reads: 0.66 minutes. Current position:chr19:43476894. End Position:chr19:53000000
+Process 42: processed 12000000 reads in  8.99 minutes. Time for process last 1000000 reads: 0.76 minutes. Current position:chr19:48232206. End Position:chr19:53000000
+..............Completed bam calling in 10.694594319661459 minutes,merging results.................
+Traceback (most recent call last):
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/bin/DupCaller.py", line 450, in <module>
+    do_call(args)
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/subcommands/Caller.py", line 292, in do_call
+    amp_tn_pd.to_csv(params["output"] + "/" + args.output + ".amp.tn.txt", sep="\t")
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/io/formats/format.py", line 1014, in to_csv
+    csv_formatter.save()
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/io/formats/csvs.py", line 251, in save
+    with get_handle(
+         ^^^^^^^^^^^
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/io/common.py", line 749, in get_handle
+    check_parent_directory(str(handle))
+  File "/gpfs/data/petljaklab/resources/envs/dupcaller/lib/python3.11/site-packages/pandas/io/common.py", line 616, in check_parent_directory
+    raise OSError(rf"Cannot save file into a non-existent directory: '{parent}'")
+OSError: Cannot save file into a non-existent directory: '/gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/calls/calls/gpfs/data/petljaklab/data/studies/MPP000008/samples/MPS001453/analyses/UDSEQ_BAM/MPA004151/merge/hg38/calls'

@@ -1,9 +1,10 @@
+import glob
 import petljakapi
 import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
-def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", bench = False) -> list:
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", bench = False, ref = "hg19") -> list:
     """
     Creates a database entry for the requested analysis and returns the directory that will be used for that entry. 
 
@@ -29,22 +30,40 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
     ## Identify the database level we need for the input to this pipeline
     ## Should be the final one (ie. should ensure that the db_deps is always ordered hierarchically)
     terminal_dep = deps[-1]
-    ## Handle fastq inputs
+    direct = False
+    ## Default ref value because some analyses don't have a ref
+    analysis_ref = None
     ## Maybe to be replaced with a function for better readability
     if analysis_name == "SOMATIC":
         outlist = []
         for pipe in ["MUTECT", "INDEL"]:
-            outlist.extend(gateway(pipe, given_id, scratch_dir, prod_dir, db))
+            outlist.extend(gateway(analysis_name=pipe, given_id=given_id, scratch_dir=scratch_dir, prod_dir=prod_dir, db=db, ref=ref))
         return(outlist)
+    ## Handle fastq inputs
     if analysis_name == "FASTQ":
         ## Get the entry of the "run" table corresponding to the given ID
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         ## index 4 is the "source" column
         source = entry[0][4]
         table_id = entry[0][0]
+        samp = entry[0][2]
+        ## Check if we already have a processed CRAM to rip the reads from
+        existing_done = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"GATK_BAM", "analysis_complete":"True", "samples_id":samp, "reference_genome":ref})
+        existing = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"GATK_BAM", "analysis_complete":"True", "samples_id":samp})
         end_path = ["fq/reads1.fq", "fq/reads2.fq"]
         path_prefix = scratch_dir
-        if source == "SRA":
+        if source == "local":
+            INPIPE = "LOCAL"
+            direct = True
+            ## entry[9] corresponds to fastq path
+            #print(entry[0][9])
+            r1 = glob.glob(entry[0][9] + "1*")[0]
+            r2 = glob.glob(entry[0][9] + "2*")[0]
+            #print([r1, r2])
+            return([r1, r2])
+        elif existing and not existing_done:
+            INPIPE = "GATK_BAM_CONVERT"
+        elif source == "SRA":
             INPIPE = "SRA"
         elif source == "EGA":
             INPIPE = "EGA"
@@ -58,11 +77,30 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
     elif analysis_name == "WGS_MERGE_BAM":
         ## Select the entry of the relevant sample table
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
-        ## Index 0 is the id
-        INPIPE = "GATK_BAM"
-        table_id = entry[0][0]
-        end_path = ["merge/hg19/merged.cram", "merge/hg19/merged.cram.crai", "merge/hg19/merged.done"]
+        ## Need to decide which pipeline to use - GATK best practices, or UDSeq (currently)
+        ## The way we achieve this is by accessing all the runs, 1. ensuring they're all homogenous in their sequencing strategy, and 2. using that value
+        runs_entries = petljakapi.select.multi_select(db, "runs", {"sample_id":entry[0][0]})
+        strategies = [element[8] for element in runs_entries]
+        strategies = list(set([strat for strat in strategies if strat in ["WGS", "WXS", "UDSEQ"]]))[0]
+        ## TODO: If there are some WGS and some UDseq libraries for the same sample, then this won't work. Need to find a solution to loop over all ways to satisfy this endpoint and make them all for their relevant runs
         path_prefix = prod_dir
+        analysis_ref=ref
+        if strategies == "UDSEQ":
+            ## do UDseq things
+            ## Enforce hg38
+            if ref != "hg38":
+                raise ValueError("UDSeq requires hg38!")
+            INPIPE = "UDSEQ_BAM"
+            table_id = entry[0][0]
+            if entry[0][5] is not None:
+                end_path = [f"merge/{ref}/calls_paired/calls_snv_private.txt", f"merge/{ref}/calls_paired/calls_coverage_stats.txt"]
+            else:
+                end_path = [f"merge/{ref}/calls/calls_snv_private.txt", f"merge/{ref}/calls/calls_coverage_stats.txt"]
+        elif strategies in ["WGS", "WXS"]:
+            ## Index 0 is the id
+            INPIPE = "GATK_BAM"
+            table_id = entry[0][0]
+            end_path = [f"merge/{ref}/merged.cram", f"merge/{ref}/merged.cram.crai", f"merge/{ref}/merged.done"]
     elif analysis_name == "MUTECT":
         ## Select the entry of the relevant sample table
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
@@ -70,26 +108,31 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         cell_id = entry[0][6]
         parent_id = entry[0][5]
         path_prefix = prod_dir
+        analysis_ref=ref
         if cell_id is not None and cell_id != "NULL":
             INPIPE = "MUTECT_CELLLINE"
             ## Test if this sample is used as a reference for any other samples
             daughters = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "sample_parent_id", filter_value = table_id, bench = bench)
             ## Init list of endpoints, beginning with line of origin (later will need to have another if-else block for biopsy vs cell lines to exclude this)
-            end_path = ["mutect2/hg19/proc/line_of_origin.txt"]
+            end_path = [f"mutect2/{ref}/proc/line_of_origin.txt"]
             ## First, if we have a parent (ie this is a daughter line), need to add the correct endpoints for daughters
+            #print(entry)
+            #print(parent_id)
             if parent_id is not None and parent_id != "NULL":
-                end_path.extend(["mutect2/hg19/proc/variants_final.vcf"])
+                end_path.extend([f"mutect2/{ref}/proc/variants_final.vcf"])
             if len(daughters) > 0: ## ie. if this is a parent
-                end_path.extend(["mutect2/hg19/parental/table_raw.txt"])
-            #print(end_path)
+                end_path.extend([f"mutect2/{ref}/parental/table_raw.txt"])
         else:
             INPIPE = "MUTECT_BIOP"
             pat_id = entry[0][8]
-            germline = petljakapi.select.multi_select(db, "samples", {"id":pat_id})[0][2]
-            if germline == pat_id:
+            germline = petljakapi.select.multi_select(db, "patients", {"id":pat_id})[0]
+            germline = germline[2]
+            if germline == table_id:
                 print(f"Calling germline variants is not yet supported. Skipping sample {id_dict[terminal_dep]}")
                 return()
-            end_path = ["mutect2/hg19/biop/filtered.vcf"]
+            end_path = [f"mutect2/{ref}/biop/filtered.vcf"]
+            if not germline:
+                end_path = [f"mutect2/{ref}/biop_noref/filtered.vcf"]
             ## If this is the germline sample, simply pass (we don't do germline calling yet)
             
 
@@ -97,12 +140,12 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
         parent_id = entry[0][5]
+        analysis_ref=ref
         if parent_id is None:
             print(f"Calling indels without matched normal is not supported. Skipping sample {id_dict[terminal_dep]}")
             return()
-        end_path = ["hg19/mutect2/indels.txt",
-                    "hg19/varscan2/indels.txt",
-                    "hg19/strelka2/indels.txt"]
+        callers = ["mutect2", "strelka2", "varscan2"]
+        end_path = [f"{ref}/{caller}/indels.txt" for caller in callers]
         path_prefix = prod_dir
         INPIPE = "INDEL"
     elif analysis_name == "LOAD_EXTERNAL_BAM":
@@ -116,7 +159,19 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         table_id = entry[0][0]
         end_path = ["splitfq/split.done"]
         path_prefix = scratch_dir
-        INPIPE = "EXTERNAL_BAM"             
+        INPIPE = "EXTERNAL_BAM"
+    elif analysis_name == "SV":
+        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
+        table_id = entry[0][0]
+        analysis_ref = ref
+        parent_id = entry[0][5]
+        if parent_id is None:
+            #print(f"Calling SVs without matched normal is not supported. Skipping sample {id_dict[terminal_dep]}")
+            end_path = [f"{ref}/gridss_singlesamp/somatic.filtered.gnomAD.sv.rds"]
+        else:
+            end_path = [f"{ref}/gridss/high_low_confidence_annotated.txt"]
+        path_prefix = scratch_dir
+        INPIPE = "SV"
     else:
         raise ValueError(f"Handling of {analysis_name} not yet supported")
     ## Now we construct the input file to make
@@ -137,7 +192,8 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         "analysis_type":analysis_name,
         "analysis_dir":path,
         "input_table":terminal_dep,
-        terminal_dep_string:table_id
+        terminal_dep_string:table_id,
+        'reference_genome':analysis_ref
     })
     ## Insert/get the relevant ID
     analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses", db = db)[0][0]

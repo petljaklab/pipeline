@@ -32,6 +32,7 @@ rule DUMP:
         iotasks = 2,
         slurm_partition = "petljaklab,cpu_short,cpu_dev,fn_short",
         runtime = 700,
+        mem_mb =  lambda wildcards, attempt: 10000 * (1 + ((attempt-1)/2)),
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/SRA/{analysis}/sra/{sra}.log"
     shell:

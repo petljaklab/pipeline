@@ -12,6 +12,7 @@ locals().update(config)
 basedir = os.path.abspath(workflow.basedir)
 
 include: os.path.join(basedir, "modules/GATK_BAM/GATK_BAM.smk")
+include: os.path.join(basedir, "modules/UDSeq/UDSeq.smk")
 include: os.path.join(basedir, "modules/SRA/SRA.smk")
 include: os.path.join(basedir, "modules/EGA/EGA.smk")
 include: os.path.join(basedir, "modules/TESTS/TESTS.smk")
@@ -20,6 +21,8 @@ include: os.path.join(basedir, "modules/EXTERNAL_BAM/EXTERNAL_BAM.smk")
 include: os.path.join(basedir, "modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk")
 include: os.path.join(basedir, "modules/INDEL/INDEL.smk")
 include: os.path.join(basedir, "modules/MUTECT_BIOP/MUTECT_BIOP.smk")
+include: os.path.join(basedir, "modules/GATK_BAM_CONVERT/GATK_BAM_CONVERT.smk")
+include: os.path.join(basedir, "modules/SV/SV.smk")
 
 #{prod_dir} OR {scratch_dir}/
 #   └──studies/

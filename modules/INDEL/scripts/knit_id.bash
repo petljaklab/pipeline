@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#module load r/4.1.2 pandoc/2.2.3.2 latex/2019
+module load r/4.1.2 pandoc/2.2.3.2 latex/2019
 
 help()
 {
-    echo "knit_sbs.bash -d DAUGHTER_TABLE -p PARENTS_TABLE -o OUTPUT_PATH"
+    echo "knit_id.bash -d DAUGHTER_TABLE -p PARENTS_TABLE -o OUTPUT_PATH"
     echo ""
     echo "Usage:"
     echo "  -d  daughter_table.txt  Table of daughters used in filter_mutations.R"
@@ -65,5 +65,5 @@ echo $output
 
 odir=$(dirname $output)
 
-echo "Rscript -e \"rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
-Rscript -e "rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"
+echo "Rscript -e \"rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
+Rscript -e "rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"

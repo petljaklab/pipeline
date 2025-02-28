@@ -1,0 +1,9 @@
+gnomad:
+  hg19: "--germline-resource /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf"
+  hg38: "--germline-resource /gpfs/data/petljaklab/resources/hg38/pipeline_resources/somatic_celline/reference_vcf/gnomad.vcf"
+  mm10: ""
+
+pon:
+  hg19: "--panel-of-normals /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/pon.vcf"
+  hg38: "--panel-of-normals /gpfs/data/petljaklab/resources/hg38/pipeline_resources/somatic_celline/reference_vcf/pon.vcf"
+  mm10: ""

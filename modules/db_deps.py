@@ -37,7 +37,11 @@ db_deps = {
     "MUTECT_BIOP":[
         "studies",
         "samples"
-    ]
+    ],
+    "SV":[
+        "studies",
+        "samples"
+    ],
 
 }
 
@@ -48,12 +52,16 @@ module_outputs = {
     "TESTS":"FASTQ",
     "SRA":"FASTQ",
     "EGA":"FASTQ",
+    "LOCAL":"FASTQ",
+    "GATK_BAM_CONVERT":"FASTQ",
     "GATK_BAM":"WGS_MERGE_BAM",
+    "UDSEQ_BAM":"WGS_MERGE_BAM",
     "MUTECT_CELLLINE":"MUTECT",
     "LOAD_EXTERNAL_BAM":"LOAD_EXTERNAL_BAM",
     "EXTERNAL_BAM":"EXTERNAL_BAM",
     "INDEL":"INDEL",
-    "MUTECT_BIOP":"MUTECT"
+    "MUTECT_BIOP":"MUTECT",
+    "SV":"SV",
 }
 
 ## Invert the dict
@@ -71,12 +79,16 @@ module_inputs = {
     "TESTS":[],
     "SRA":[],
     "EGA":[],
+    "LOCAL":[],
+    "GATK_BAM_CONVERT":["WGS_MERGE_BAM"],
     "GATK_BAM":["FASTQ"],
+    "UDSEQ_BAM":["FASTQ"],
     "MUTECT_CELLLINE":["WGS_MERGE_BAM"],
     "EXTERNAL_BAM":[],
     "LOAD_EXTERNAL_BAM":[],
     "INDEL":["WGS_MERGE_BAM"],
     "MUTECT_BIOP":["WGS_MERGE_BAM"],
+    "SV":["WGS_MERGE_BAM"],
 }
 
 ## e.g. we can see that GATK_BAM requires a FASTQ module as input and outputs a WGS_MERGE_BAM

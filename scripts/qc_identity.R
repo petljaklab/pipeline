@@ -13,6 +13,8 @@ nm = names(input)[29]
 input[,geno:=gsub("/", "", get(nm))]
 input[,num_gt:=genotypetoid(geno, REF), by = 1:length(geno)]
 
+
+## This file is identical for all hg versions, since it's computed per snp, which are invariant across reference genomes (at least for this set)
 references = suppressWarnings(fread("/gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/reference_numeric_genotypes.txt"))
 references$V1 = NULL
 

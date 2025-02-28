@@ -1,4 +1,4 @@
-REFERENCE_GENOME_NAME: "hg19"
+REFERENCE_GENOME_NAME: "hg38"
 ALIGN_THREADS: 8
 
 
@@ -17,11 +17,12 @@ SCRATCH_DIR: "/gpfs/data/petljaklab/data/"
 ALN_REFERENCES:
   hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/bwa/hg19.fa"
   hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa/hg38.fa"
+  mm10: "/gpfs/data/petljaklab/resources/mm10/pipeline_resources/genome/bwa/mm10.fa"
 
 FA_PATHS:
   hg19: "/gpfs/data/petljaklab/resources/hg19/pipeline_resources/genome/fasta/hg19.fa"
   hg38: "/gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/fasta/hg38.fa"
-
+  mm10: "/gpfs/data/petljaklab/resources/mm10/pipeline_resources/genome/fasta/mm10.fa"
 db: "petljakdb"
 
 bench: False
@@ -75,3 +76,56 @@ chromosomes:
     - "chr21"
     - "chr22"
     - "chrX"
+  mm10:
+    - "chr1"
+    - "chr2"
+    - "chr3"
+    - "chr4"
+    - "chr5"
+    - "chr6"
+    - "chr7"
+    - "chr8"
+    - "chr9"
+    - "chr10"
+    - "chr11"
+    - "chr12"
+    - "chr13"
+    - "chr14"
+    - "chr15"
+    - "chr16"
+    - "chr17"
+    - "chr18"
+    - "chr19"
+    - "chrX"
+
+
+clusters:
+  default:
+    med:
+      "petljaklab,cpu_medium"
+    fat:
+      "petljaklab,fn_medium,cpu_medium"
+    short:
+      "petljaklab,cpu_short"
+    dev:
+      "petljaklab,cpu_dev"
+  cpu:
+    med:
+      "cpu_medium"
+    fat:
+      "fn_medium"
+    short:
+      "cpu_short"
+    dev:
+      "cpu_dev"
+  petljak:
+    med:
+      "petljaklab"
+    short:
+      "petljaklab"
+    fat:
+      "petljaklab"
+    dev:
+      "petljaklab"
+
+parts: "default"

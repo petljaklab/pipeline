@@ -29,8 +29,8 @@ library(stringr)
 
 parent_table = fread(args$parent, header = F)
 daughters_table = fread(args$daughter, header = F)
-names(parent_table) = c("path", "name", "line")
-names(daughters_table) = c("path", "germ", "name", "parent", "line")
+names(parent_table) = c("path", "name", "line", "tx")
+names(daughters_table) = c("path", "germ", "name", "parent", "line", "tx")
 
 if(F){
 #	args = list("tumor" = "H1650_A1.4", "daughters" = "")

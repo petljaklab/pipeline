@@ -1,0 +1,745 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Indel Filtering and QC Report},
+  pdfauthor={Luka Culibrk},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Indel Filtering and QC Report}
+\author{Luka Culibrk}
+\date{2024-05-03}
+
+\begin{document}
+\maketitle
+
+\subsection{Data and filtering
+overview}\label{data-and-filtering-overview}
+
+Indel variant callers already apply many filters based on sequence
+quality, mapping quality, and other metrics. These mutations are already
+filtered out here.
+
+Here we show a general overview of \textbf{post-hoc} filtering. This
+means additional filters that we apply to the data based on information
+from a cell's siblings or parents. We then plot the results of the
+post-hoc filters. Justification of each filter category will come next.
+
+\subsection{Spectrum of private daughter
+mutations}\label{spectrum-of-private-daughter-mutations}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{m2\_dat[,genotype}\SpecialCharTok{:=}\FunctionTok{gsub}\NormalTok{(}\StringTok{"\^{}([\^{}\_]*\_)([A{-}Z])[0{-}9]*"}\NormalTok{, }\StringTok{"}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{2"}\NormalTok{, lineage)]}
+\NormalTok{plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{(c }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(m2\_dat}\SpecialCharTok{$}\NormalTok{cell))\{}
+\NormalTok{    genotypes }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c]}\SpecialCharTok{$}\NormalTok{genotype))}
+    \ControlFlowTok{for}\NormalTok{(geno }\ControlFlowTok{in}\NormalTok{ genotypes)\{}
+\NormalTok{        line\_plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\NormalTok{        filts }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno]}\SpecialCharTok{$}\NormalTok{tumor.LAB))}
+\NormalTok{        title }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{draw\_label\_theme}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Mutation profile of "}\NormalTok{, c, }\StringTok{" private daughter IDs}\SpecialCharTok{\textbackslash{}n}\StringTok{Genotype:"}\NormalTok{, geno), }\AttributeTok{theme =} \FunctionTok{theme\_cowplot}\NormalTok{(), }\AttributeTok{element =} \StringTok{"title"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_cowplot}\NormalTok{()}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_indels}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno][tumor.LAB }\SpecialCharTok{==} \StringTok{"unq"}\NormalTok{])}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_grid}\NormalTok{(title, p, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{rel\_heights =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{        plts }\OtherTok{=} \FunctionTok{c}\NormalTok{(plts, }\FunctionTok{list}\NormalTok{(p))}
+\NormalTok{    \}}
+    \CommentTok{\#plts = c(plts, list(plot\_grid(plotlist = line\_plts, ncol = 1)))}
+        \CommentTok{\#title = ggplot() + draw\_label\_theme(label = paste0("Line ", c, " genotype: ", geno,  "\textbackslash{}nPrivate indel spectrum"), theme = theme\_cowplot(), element = "title") + theme\_cowplot()}
+        \CommentTok{\#p = plot\_indels(m2\_dat[cell == c][genotype == geno][tumor.LAB == "unq"])}
+        \CommentTok{\#p = plot\_grid(title, p, ncol = 1, rel\_heights = c(0.2, 1))}
+        \CommentTok{\#line\_plts = c(plts, list(p))}
+
+\NormalTok{\}}
+\NormalTok{plts}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-1.pdf}}
+
+\begin{verbatim}
+## 
+## [[2]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-2.pdf}}
+
+\begin{verbatim}
+## 
+## [[3]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-3.pdf}}
+
+\begin{verbatim}
+## 
+## [[4]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-4.pdf}}
+
+\begin{verbatim}
+## 
+## [[5]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-5.pdf}}
+
+\begin{verbatim}
+## 
+## [[6]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-6.pdf}}
+
+\begin{verbatim}
+## 
+## [[7]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-7.pdf}}
+
+\begin{verbatim}
+## 
+## [[8]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-8.pdf}}
+
+\begin{verbatim}
+## 
+## [[9]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-9.pdf}}
+
+\begin{verbatim}
+## 
+## [[10]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-4-10.pdf}}
+
+\subsection{Spectrum of daughter mutations found in \textgreater50\% of
+parents}\label{spectrum-of-daughter-mutations-found-in-50-of-parents}
+
+Notably this category is too sparse to draw many meaningful inferences
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{(c }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(m2\_dat}\SpecialCharTok{$}\NormalTok{cell))\{}
+\NormalTok{    genotypes }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c]}\SpecialCharTok{$}\NormalTok{genotype))}
+    \ControlFlowTok{for}\NormalTok{(geno }\ControlFlowTok{in}\NormalTok{ genotypes)\{}
+\NormalTok{        line\_plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\NormalTok{        filts }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno]}\SpecialCharTok{$}\NormalTok{tumor.LAB))}
+\NormalTok{        title }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{draw\_label\_theme}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Mutation profile of "}\NormalTok{, c, }\StringTok{" daughter IDs found in \textgreater{}50\% of parents}\SpecialCharTok{\textbackslash{}n}\StringTok{Genotype:"}\NormalTok{, geno), }\AttributeTok{theme =} \FunctionTok{theme\_cowplot}\NormalTok{(), }\AttributeTok{element =} \StringTok{"title"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_cowplot}\NormalTok{()}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_indels}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno][tumor.LAB }\SpecialCharTok{==} \StringTok{"shared\_parental"}\NormalTok{])}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_grid}\NormalTok{(title, p, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{rel\_heights =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{        plts }\OtherTok{=} \FunctionTok{c}\NormalTok{(plts, }\FunctionTok{list}\NormalTok{(p))}
+\NormalTok{    \}}
+    \CommentTok{\#plts = c(plts, list(plot\_grid(plotlist = line\_plts, ncol = 1)))}
+        \CommentTok{\#title = ggplot() + draw\_label\_theme(label = paste0("Line ", c, " genotype: ", geno,  "\textbackslash{}nPrivate indel spectrum"), theme = theme\_cowplot(), element = "title") + theme\_cowplot()}
+        \CommentTok{\#p = plot\_indels(m2\_dat[cell == c][genotype == geno][tumor.LAB == "unq"])}
+        \CommentTok{\#p = plot\_grid(title, p, ncol = 1, rel\_heights = c(0.2, 1))}
+        \CommentTok{\#line\_plts = c(plts, list(p))}
+
+\NormalTok{\}}
+\NormalTok{plts}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-1.pdf}}
+
+\begin{verbatim}
+## 
+## [[2]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-2.pdf}}
+
+\begin{verbatim}
+## 
+## [[3]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-3.pdf}}
+
+\begin{verbatim}
+## 
+## [[4]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-4.pdf}}
+
+\begin{verbatim}
+## 
+## [[5]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-5.pdf}}
+
+\begin{verbatim}
+## 
+## [[6]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-6.pdf}}
+
+\begin{verbatim}
+## 
+## [[7]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-7.pdf}}
+
+\begin{verbatim}
+## 
+## [[8]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-8.pdf}}
+
+\begin{verbatim}
+## 
+## [[9]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-9.pdf}}
+
+\begin{verbatim}
+## 
+## [[10]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-5-10.pdf}}
+
+\subsection{Spectrum of daughter mutations shared between different
+lineages}\label{spectrum-of-daughter-mutations-shared-between-different-lineages}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{(c }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(m2\_dat}\SpecialCharTok{$}\NormalTok{cell))\{}
+\NormalTok{    genotypes }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c]}\SpecialCharTok{$}\NormalTok{genotype))}
+    \ControlFlowTok{for}\NormalTok{(geno }\ControlFlowTok{in}\NormalTok{ genotypes)\{}
+\NormalTok{        line\_plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\NormalTok{        filts }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno]}\SpecialCharTok{$}\NormalTok{tumor.LAB))}
+\NormalTok{        title }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{draw\_label\_theme}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Mutation profile of "}\NormalTok{, c, }\StringTok{" daughter IDs shared between different lineages}\SpecialCharTok{\textbackslash{}n}\StringTok{Genotype:"}\NormalTok{, geno), }\AttributeTok{theme =} \FunctionTok{theme\_cowplot}\NormalTok{(), }\AttributeTok{element =} \StringTok{"title"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_cowplot}\NormalTok{()}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_indels}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno][tumor.LAB }\SpecialCharTok{==} \StringTok{"shared\_external"}\NormalTok{])}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_grid}\NormalTok{(title, p, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{rel\_heights =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{        plts }\OtherTok{=} \FunctionTok{c}\NormalTok{(plts, }\FunctionTok{list}\NormalTok{(p))}
+\NormalTok{    \}}
+    \CommentTok{\#plts = c(plts, list(plot\_grid(plotlist = line\_plts, ncol = 1)))}
+        \CommentTok{\#title = ggplot() + draw\_label\_theme(label = paste0("Line ", c, " genotype: ", geno,  "\textbackslash{}nPrivate indel spectrum"), theme = theme\_cowplot(), element = "title") + theme\_cowplot()}
+        \CommentTok{\#p = plot\_indels(m2\_dat[cell == c][genotype == geno][tumor.LAB == "unq"])}
+        \CommentTok{\#p = plot\_grid(title, p, ncol = 1, rel\_heights = c(0.2, 1))}
+        \CommentTok{\#line\_plts = c(plts, list(p))}
+
+\NormalTok{\}}
+\NormalTok{plts}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-1.pdf}}
+
+\begin{verbatim}
+## 
+## [[2]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-2.pdf}}
+
+\begin{verbatim}
+## 
+## [[3]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-3.pdf}}
+
+\begin{verbatim}
+## 
+## [[4]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-4.pdf}}
+
+\begin{verbatim}
+## 
+## [[5]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-5.pdf}}
+
+\begin{verbatim}
+## 
+## [[6]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-6.pdf}}
+
+\begin{verbatim}
+## 
+## [[7]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-7.pdf}}
+
+\begin{verbatim}
+## 
+## [[8]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-8.pdf}}
+
+\begin{verbatim}
+## 
+## [[9]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-9.pdf}}
+
+\begin{verbatim}
+## 
+## [[10]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-6-10.pdf}}
+
+\subsection{Spectrum of daughter mutations shared within the same
+lineage}\label{spectrum-of-daughter-mutations-shared-within-the-same-lineage}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{(c }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(m2\_dat}\SpecialCharTok{$}\NormalTok{cell))\{}
+\NormalTok{    genotypes }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c]}\SpecialCharTok{$}\NormalTok{genotype))}
+    \ControlFlowTok{for}\NormalTok{(geno }\ControlFlowTok{in}\NormalTok{ genotypes)\{}
+\NormalTok{        line\_plts }\OtherTok{=} \FunctionTok{list}\NormalTok{()}
+\NormalTok{        filts }\OtherTok{=} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno]}\SpecialCharTok{$}\NormalTok{tumor.LAB))}
+\NormalTok{        title }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{draw\_label\_theme}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Mutation profile of "}\NormalTok{, c, }\StringTok{" daughter IDs shared within the same lineage}\SpecialCharTok{\textbackslash{}n}\StringTok{Genotype:"}\NormalTok{, geno), }\AttributeTok{theme =} \FunctionTok{theme\_cowplot}\NormalTok{(), }\AttributeTok{element =} \StringTok{"title"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_cowplot}\NormalTok{()}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_indels}\NormalTok{(m2\_dat[cell }\SpecialCharTok{==}\NormalTok{ c][genotype }\SpecialCharTok{==}\NormalTok{ geno][tumor.LAB }\SpecialCharTok{==} \StringTok{"shared\_external"}\NormalTok{])}
+\NormalTok{        p }\OtherTok{=} \FunctionTok{plot\_grid}\NormalTok{(title, p, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{rel\_heights =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{        plts }\OtherTok{=} \FunctionTok{c}\NormalTok{(plts, }\FunctionTok{list}\NormalTok{(p))}
+\NormalTok{    \}}
+    \CommentTok{\#plts = c(plts, list(plot\_grid(plotlist = line\_plts, ncol = 1)))}
+        \CommentTok{\#title = ggplot() + draw\_label\_theme(label = paste0("Line ", c, " genotype: ", geno,  "\textbackslash{}nPrivate indel spectrum"), theme = theme\_cowplot(), element = "title") + theme\_cowplot()}
+        \CommentTok{\#p = plot\_indels(m2\_dat[cell == c][genotype == geno][tumor.LAB == "unq"])}
+        \CommentTok{\#p = plot\_grid(title, p, ncol = 1, rel\_heights = c(0.2, 1))}
+        \CommentTok{\#line\_plts = c(plts, list(p))}
+
+\NormalTok{\}}
+\NormalTok{plts}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [[1]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-1.pdf}}
+
+\begin{verbatim}
+## 
+## [[2]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-2.pdf}}
+
+\begin{verbatim}
+## 
+## [[3]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-3.pdf}}
+
+\begin{verbatim}
+## 
+## [[4]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-4.pdf}}
+
+\begin{verbatim}
+## 
+## [[5]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-5.pdf}}
+
+\begin{verbatim}
+## 
+## [[6]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-6.pdf}}
+
+\begin{verbatim}
+## 
+## [[7]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-7.pdf}}
+
+\begin{verbatim}
+## 
+## [[8]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-8.pdf}}
+
+\begin{verbatim}
+## 
+## [[9]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-9.pdf}}
+
+\begin{verbatim}
+## 
+## [[10]]
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-7-10.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# temp for lung report}
+
+\NormalTok{m2\_dat[,clone}\SpecialCharTok{:=}\FunctionTok{gsub}\NormalTok{(}\StringTok{".*}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{.([0{-}9]*)"}\NormalTok{, }\StringTok{"}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{1"}\NormalTok{, name)]}
+\FunctionTok{setkey}\NormalTok{(tbl, name)}
+\FunctionTok{setkey}\NormalTok{(m2\_dat, name)}
+\NormalTok{variant\_data\_boxplot }\OtherTok{=}\NormalTok{ m2\_dat[tbl]}
+\NormalTok{variant\_data\_boxplot }\OtherTok{=}\NormalTok{ variant\_data\_boxplot[FILTER }\SpecialCharTok{==} \StringTok{"PASS"}\NormalTok{,.(}\AttributeTok{n =}\NormalTok{ .N), by }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"name"}\NormalTok{, }\StringTok{"cell"}\NormalTok{, }\StringTok{"treatment"}\NormalTok{, }\StringTok{"culture\_time"}\NormalTok{)]}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(m2\_dat}\SpecialCharTok{$}\NormalTok{cell))\{}
+    \FunctionTok{print}\NormalTok{(}\FunctionTok{ggplot}\NormalTok{(variant\_data\_boxplot[cell }\SpecialCharTok{==}\NormalTok{ i], }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ treatment, }\AttributeTok{fill =} \FunctionTok{factor}\NormalTok{(culture\_time), }\AttributeTok{y =}\NormalTok{ n)) }\SpecialCharTok{+} \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{xlab}\NormalTok{(}\StringTok{"Condition"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Total number of SBS"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_bw}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{scale\_fill\_discrete}\NormalTok{(}\AttributeTok{name =} \StringTok{"Culture time"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ggtitle}\NormalTok{(i))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-8-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-8-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-8-3.pdf}}
+
+\subsection{Individual samples' mutation
+profiles/spectra}\label{individual-samples-mutation-profilesspectra}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \FunctionTok{sort}\NormalTok{(}\FunctionTok{unique}\NormalTok{(tbl}\SpecialCharTok{$}\NormalTok{name)))\{}
+\NormalTok{    title }\OtherTok{=} \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{draw\_label\_theme}\NormalTok{(}\AttributeTok{label =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"Mutation profile of passing "}\NormalTok{, i, }\StringTok{" ID mutations"}\NormalTok{), }\AttributeTok{theme =} \FunctionTok{theme\_cowplot}\NormalTok{(), }\AttributeTok{element =} \StringTok{"title"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_cowplot}\NormalTok{()}
+\NormalTok{    p }\OtherTok{=} \FunctionTok{plot\_indels}\NormalTok{(m2\_dat[name }\SpecialCharTok{==}\NormalTok{ i][FILTER }\SpecialCharTok{==} \StringTok{"PASS"}\NormalTok{])}
+\NormalTok{    p }\OtherTok{=} \FunctionTok{plot\_grid}\NormalTok{(title, p, }\AttributeTok{ncol =} \DecValTok{1}\NormalTok{, }\AttributeTok{rel\_heights =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+    \FunctionTok{print}\NormalTok{(p)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-3.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-4.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-5.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-6.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-7.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-8.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-9.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-10.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-11.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-12.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-13.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-14.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-15.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-16.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-17.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-18.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-19.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-20.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-21.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-22.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-23.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-24.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-25.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-26.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-27.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-28.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-29.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-30.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-31.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-32.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-33.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-34.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-35.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-36.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-37.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-38.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-39.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-40.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-41.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-42.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-43.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-44.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-45.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-46.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-47.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-48.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-49.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-50.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-51.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-52.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-53.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-54.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-55.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-56.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-57.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-58.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-59.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-60.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-61.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-62.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-63.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-64.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-65.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-66.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-67.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-68.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-69.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-70.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-71.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-72.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-73.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-74.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-75.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-76.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-77.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-78.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-79.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-80.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-81.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-82.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-83.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-84.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-85.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-86.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-87.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-88.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-89.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-90.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-91.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-92.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-93.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-94.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-95.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-96.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-97.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-98.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-99.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-100.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-101.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-102.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-103.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-104.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-105.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-106.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-107.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-108.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-109.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-110.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-111.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-112.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-113.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-114.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-115.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-116.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-117.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-118.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-119.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-120.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-121.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-122.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-123.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-124.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-125.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-126.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-127.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-128.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-129.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-130.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-131.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-132.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-133.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-134.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-135.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-136.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-137.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-138.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-139.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-140.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-141.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-142.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-143.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-144.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-145.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-146.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-147.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-148.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-149.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-150.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-151.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-152.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-153.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-154.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-155.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-156.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-157.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-158.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-159.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-160.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-161.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-162.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-163.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-164.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-165.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-166.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-167.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-168.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-169.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-170.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-171.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-172.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-173.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-174.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-175.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-176.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-177.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-178.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-179.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-180.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-181.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-182.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-183.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-184.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-185.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-186.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-187.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-188.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-189.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-190.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-191.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-192.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-193.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-194.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-195.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-196.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{id_report_files/figure-latex/unnamed-chunk-9-197.pdf}}
+
+\end{document}

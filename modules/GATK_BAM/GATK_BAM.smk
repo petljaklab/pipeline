@@ -43,18 +43,18 @@ rule UBAM:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.bam.log"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.benchmark"
     resources:
-        runtime = 240,
+        runtime = 480,
         iotasks = 2,
         mem_mb = 4000,
         jv_mem = 3750,
-        slurm_partition = "petljaklab,cpu_short"
+        slurm_partition = config["clusters"][config["parts"]]["short"]
     params:
         TEMP_DIR = TEMP_DIR,
         TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
     priority: 9999
     shell:
         """
-        gatk --java-options '-Xmx{resources.jv_mem}M' \
+        gatk --java-options '-Xmx{resources.jv_mem}M -Dsamjdk.compression_level=6' \
             FastqToSam \
             --FASTQ {input[0]} \
             --FASTQ2 {input[1]} \
@@ -79,17 +79,17 @@ rule MARK_ADAPTERS:
     benchmark: 
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/unaln.adaptmarked.benchmark"
     resources:
-        runtime = 240,
+        runtime = 1200,
         mem_mb = 2000,
         jv_mem = 1900,
         iotasks = 2,
-        slurm_partition = "petljaklab,cpu_short,fn_short"
+        slurm_partition = config["clusters"][config["parts"]]["short"]
     singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
     priority: 1000
     shell:
         """
         mkdir -p {params.tmp}
-        gatk --java-options '-Xmx{resources.jv_mem}M' \
+        gatk --java-options '-Xmx{resources.jv_mem}M -Dsamjdk.compression_level=6' \
             MarkIlluminaAdapters \
             -I {input.ubam} \
             -O {output.obam} \
@@ -111,11 +111,11 @@ rule MARKED_SAM_TO_FASTQ:
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.samtofastq.benchmark"
     resources:
-        runtime = 480,
+        runtime = 1200,
         mem_mb = 4000,
         jv_mem = 3750,
         iotasks = 2,
-        slurm_partition = "petljaklab,cpu_short,fn_short"
+        slurm_partition = config["clusters"][config["parts"]]["short"]
     priority: 1001
     shell:
         """
@@ -141,7 +141,7 @@ rule BWA:
         cpus = ALIGN_THREADS,
         mem_mb = 30000,
         iotasks = 4,
-        slurm_partition = "petljaklab,cpu_medium,fn_medium",
+        slurm_partition = config["clusters"][config["parts"]]["med"],
         tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
         bwa = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.bwa.log",
@@ -153,16 +153,11 @@ rule BWA:
     priority: 1002
     shell:
         """
-            set +eo pipefail;
             mkdir -p {params.tmpfastqpath};
+            trap "rm -rf {params.tmpfastqpath}" EXIT;
             cp {input.ifastq} {params.tmpfastq};
             bwa mem -M -t {threads} -p {input.bwa_idxbase} {params.tmpfastq} > {output} 2> {log.bwa};
-            if [ $? -ne 0 ]; then
-                rm {params.tmpfastq};
-                set -eo pipefail;
-                exit 69;
-            fi;
-            rm {params.tmpfastq}
+            rm -rf {params.tmpfastqpath}
         """
 
 rule MERGEBAMALIGNMENT:
@@ -177,19 +172,20 @@ rule MERGEBAMALIGNMENT:
     params:
         tmp = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/mergebamalignment/",
     resources:
+        runtime = 1200,
         threads = 1,
         cpus = 1,
-        mem_mb = 3000,
-        jv_mem = 2900,
+        mem_mb = lambda wildcards, attempt: 5000 * (1 + ((attempt-1)/2)),
+        jv_mem = lambda wildcards, attempt: 4500 * (1 + ((attempt-1)/2)),
         iotasks = 4,
-        slurm_partition = "petljaklab,cpu_medium,fn_medium"
+        slurm_partition = config["clusters"][config["parts"]]["med"]
     singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.mergebamalignment.benchmark"
     priority: 9999
     shell:
         """
         mkdir -p {params.tmp}
-        gatk --java-options '-Xmx{resources.jv_mem}M' \
+        gatk --java-options '-Xmx{resources.jv_mem}M -Dsamjdk.compression_level=6' \
             MergeBamAlignment \
             -ALIGNED_BAM {input.bwa} \
             -UNMAPPED_BAM {input.ubam} \
@@ -219,8 +215,8 @@ rule GATK_MARKDUPS:
         cpus = ALIGN_THREADS,
         mem_mb = 35000,
         iotasks = 4,
-        slurm_partition = "petljaklab,cpu_medium,fn_medium",
-        runtime = 60*24*3,
+        slurm_partition = config["clusters"][config["parts"]]["med"],
+        runtime = 60*24*4,
         tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/GATK_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam.log"
@@ -230,20 +226,16 @@ rule GATK_MARKDUPS:
     shell:
         """
         set +eo pipefail;
-        rm -rf {output.bam}.parts/;
+        trap "rm -rf {output.bam}.parts/ {params.TEMP_BAM_PATH}" EXIT;
         mkdir -p {params.TEMP_BAM_PATH};
         cp {input} {params.TEMP_BAM_FILE};
-        gatk MarkDuplicatesSpark \
+        gatk --java-options '-Dsamjdk.compression_level=6' \
+            MarkDuplicatesSpark \
             -I {params.TEMP_BAM_FILE} \
             -O {output.bam} \
             --conf 'spark.executor.cores={resources.threads}' \
             --conf 'spark.local.dir={params.TEMP_DIR}' &> {log};
-        if [ $? -ne 0 ]; then
-            rm {params.TEMP_BAM_FILE};
-            set -eo pipefail;
-            exit 69;
-        fi
-        rm -rf {params.TEMP_BAM_FILE}
+        rm -rf {params.TEMP_BAM_PATH}
         """
 
 rule GATK_MERGE:
@@ -260,16 +252,17 @@ rule GATK_MERGE:
     resources:
         threads = 2,
         cpus = 2,
-        runtime = 480,
+        runtime = 960,
         iotasks = 4,
-        slurm_partition = "petljaklab,cpu_short,fn_short,cpu_dev"
+        slurm_partition = config["clusters"][config["parts"]]["short"]
     params:
         inputlist = lambda wildcards, input: f"-I {input}" if isinstance(input, str) else "-I " + " -I ".join(input)
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.benchmark"
     priority: 1004
     shell:
         """
-        gatk MergeSamFiles \
+        gatk --java-options '-Dsamjdk.compression_level=6' \
+            MergeSamFiles \
             {params.inputlist} -O {output.merge} \
             --USE_THREADING true \
              &>> {log}
@@ -289,8 +282,8 @@ rule BAM2CRAM:
     singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
     threads: 1
     resources:
-        runtime = 480,
-        slurm_partition = "petljaklab,cpu_short",
+        runtime = 600,
+        slurm_partition = config["clusters"][config["parts"]]["short"],
         mem_mb = 4000,
     benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/GATK_BAM/{analysis}/merge/{reference}/merged.cram.bench"
     priority: 1005
@@ -315,7 +308,7 @@ rule GATK_BAM_DONE:
         db = config["db"]
     resources:
         runtime = 10,
-        slurm_partition = "petljaklab,cpu_short",
+        slurm_partition = config["clusters"][config["parts"]]["short"],
     priority: 1007
     shell:
         "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input} >> {log}; touch {output}"

@@ -1,0 +1,800 @@
+---
+title: "Parent-Daughter Indel Filtering and QC Report"
+author: "Luka Culibrk"
+date: "2024-05-03"
+output: 
+    pdf_document
+params:
+  args: ''
+header-includes:
+  - \usepackage{hyperref}
+  - \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+---
+
+```{r setup, echo=FALSE, include = FALSE}
+library(data.table)
+library(ggplot2)
+library(ggfittext)
+library(cowplot)
+library(viridis)
+library(stringr)
+library(grid)
+set.seed(42069)
+
+knitr::opts_chunk$set(cache.lazy = FALSE)
+
+
+## Eventually have this table be read in from disk
+conversion_table = c("NCI-H1650" = "H1650", 
+										 "NCI-H2347" = "H2347", 
+										 "PC-14"			 = "PC9")
+
+require(BSgenome.Hsapiens.UCSC.hg19)
+plot_indels = function(indat, matrix = F){
+	indat = indat[nchar(REF) != nchar(ALT) & (nchar(REF) == 1 | nchar(ALT) == 1)]
+	indat[,typ:="insertion"]
+	indat[nchar(REF) > nchar(ALT),typ:="deletion"]
+	indat[,size:=abs(nchar(REF)-nchar(ALT))]
+	## We have a number of categories to deal with
+	### 1bp del/ins of a C/T, homopolymer length 1/0-6/5+
+	### 2-5+bp del/ins of 2/1-6/5+ repeats
+	### 2-5+bp del of 1-5+ microhomologies
+	## Firstly we do the 1bp indels
+	ones = indat[size == 1]
+	if(nrow(ones) > 0){
+		ones[,modded:=ifelse(nchar(REF) > nchar(ALT), yes = substr(REF, 2, 2), no = substr(ALT, 2, 2))]
+		ones[,up:=POS-6]
+		ones[,down:=POS+6]
+		ones[,chrchrom:=paste0("chr", CHROM)]
+		gr = makeGRangesFromDataFrame(df = ones, seqnames.field = "chrchrom", start.field = "up", end.field = "down")
+		seq_context  = as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))
+		ones[,seqs:=seq_context]
+		homopolymers = function(search_seq, base){
+			## First get a vector of the sequence
+			search_seq = unlist(strsplit(search_seq, ""))
+			pos = 8
+			direction = 1
+			hom_length = 0
+			done = F
+			while(!done){
+				query_seq = search_seq[pos]
+				if(query_seq == base){
+					hom_length = hom_length + 1
+				}else if(query_seq != base){
+					## We didn't find a continuation of the homopolymer
+					if(direction == 1){
+						direction = -1
+						pos = 8
+					}else{
+						done = T
+					}
+				}
+				if(pos == length(search_seq)){
+					direction = -1
+					pos = 8
+				}
+				pos = pos + direction
+			}
+			return(hom_length)
+		}
+		ones[,homp_len:=homopolymers(seqs, modded), by = 1:nrow(ones)]
+	}
+	## Now we look at >1bp indels
+	## Strategy: Assume everything is a repeat indel
+	## Then, we take the 1-rep indels and check them for microhomologies
+	large = indat[size > 1]
+	nlarge = nrow(large)
+	large[,modded_seq:=ifelse(nchar(REF) > nchar(ALT), yes = substr(REF, 2, nchar(REF)), no = substr(ALT, 2, nchar(ALT)))]
+	large[,chrchrom:=paste0("chr", CHROM)]
+	large[,up:=POS - size + 1]
+	large[,down:=POS+size]
+	large[,pos2:=POS]
+	large[,pos3:=POS+1]
+	large[,upseq:="N"]
+	large[,downseq:="N"]
+	large[,reps:=0]
+	large[,c("left","right"):=0]
+	n_repeats = 0
+	# Do the initial iteration out here, because we need to look both up and down. Afterward we set a direction and iteratively look in that direction+
+	## Get upstream and downstream sequences
+	gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "up", end.field = "pos2")
+	large[,upseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+	gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "pos3", end.field = "down")
+	large[,downseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+	## I think this should never trigger, but put this here to be sure
+	if(nrow(large[modded_seq == upseq & modded_seq == downseq]) > 0){
+		stop("Edge case detected - improve the program")
+	}
+	## Decide if we're looking upstream or downstream for more repeats
+	large[,direction:=ifelse(modded_seq == upseq, yes = -1, no = 1)]
+	## Append the non-repetitive seqs to this table, filter down table
+	large_d = large[0]
+	large_d = rbind(large_d, large[!(modded_seq == upseq | modded_seq == downseq)])
+	large = large[(modded_seq == upseq | modded_seq == downseq)]
+	## Define left and right bounds of new intervals
+	large[,left:=ifelse(direction > 0, yes = pos3 + size, no = up - size)]
+	large[,right:=ifelse(direction > 0, yes = down+size, no = pos2 - size)]
+	n_repeats = 1
+	while(nrow(large) > 1 & n_repeats < 6){
+		large[,reps:=n_repeats]
+		gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "left", end.field = "right")
+		large[,downseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+		large_d = rbind(large_d, large[!(modded_seq == upseq | modded_seq == downseq)])
+		large = large[(modded_seq == upseq | modded_seq == downseq)]
+		large[,left:=left+(size*direction)]
+		large[,right:=right+(size*direction)]
+		n_repeats = n_repeats + 1
+	}
+	large[,reps:=n_repeats]
+	large_d = rbind(large_d, large)
+	## Now we process the microhomology deletions
+	microhom_candidates = large_d[typ == "deletion" & reps == 1]
+	n_microhom_candidates = nrow(microhom_candidates)
+	## If l = length(del), we begin with length= l-1 microhomologies
+	microhom_d = microhom_candidates[0]
+	micro_len = 1
+	while(nrow(microhom_candidates) > 0){
+		microhom_candidates[,micro_search:=micro_len]
+		microhom_candidates[,check_del:=substr(modded_seq, 1, nchar(modded_seq) - micro_len)]
+		microhom_candidates[,check_upseq:=substr(upseq, 1 + micro_len, nchar(upseq))]
+		microhom_candidates[,check_downseq:=substr(downseq, 1, nchar(downseq) - micro_len )]
+		microhom_d = rbind(microhom_d, microhom_candidates[check_del == check_upseq | check_del == check_downseq], fill = TRUE)
+		microhom_candidates = microhom_candidates[!(check_del == check_upseq | check_del == check_downseq)]
+		micro_len = micro_len + 1
+	}
+	if(nrow(microhom_d) > 0){
+		microhom_d[,micro_size:=nchar(check_del)]
+		microhom_failed = microhom_d[nchar(check_del) == 0]
+		microhom_d = microhom_d[nchar(check_del) > 0]
+		microhom_d[,discrete_len:=size]
+		microhom_d[discrete_len >=5,discrete_len:=5]
+		microhom_d[,discrete_micro:=micro_size]
+		microhom_d[discrete_micro >= 5,discrete_micro:=5]
+		microhom_sum = microhom_d[order(discrete_len, discrete_micro)][discrete_micro > 0,.(n = .N), by = c("discrete_len", "discrete_micro")]
+		microhom_sum[,name:=paste0("micro", discrete_len, discrete_micro)]
+		setkey(microhom_sum, name)
+		ref_microhom = data.table("Var1" = "micro", "Var2" = c(rep(2, 1), rep(3, 2), rep(4, 3), rep(5,5)), "Var3" = c(1, 1:2, 1:3, 1:5))
+		ref_microhom[,name:=paste0(Var1, Var2, Var3)]
+		setkey(ref_microhom, name)
+		microhom_sum = microhom_sum[,c("name", "n")][ref_microhom[,"name"]]
+	}else{
+		ref_microhom = data.table("Var1" = "micro", "Var2" = c(rep(2, 1), rep(3, 2), rep(4, 3), rep(5,5)), "Var3" = c(1, 1:2, 1:3, 1:5))
+		ref_microhom[,name:=paste0(Var1, Var2, Var3)]
+		ref_microhom[,n:=NA]
+		microhom_sum = ref_microhom[,c("name", "n")]
+		microhom_failed = data.table()
+	}
+	## Now summarize it all into a vector
+	### 1bpdel[C,T], 1bpins[C,T]
+	
+	ref_ones = rbind(data.table(expand.grid(c("del"), c("C", "T"), 1:6)), data.table(expand.grid(c("ins"), c("C", "T"), 0:5)))
+	ref_ones[,name:=paste0(Var1, Var2, Var3)]
+	ref_ones = ref_ones[,"name"]
+	setkey(ref_ones, name)
+	if(nrow(ones) > 0){
+		ones[,pmodded:=modded]
+		ones[modded == "G",pmodded:="C"]
+		ones[modded == "A",pmodded:="T"]
+		ones[typ == "insertion" & homp_len == 6,homp_len:=5]
+		ones_sum = ones[order(typ, pmodded, homp_len)][,.(n = .N), by = c("typ", "pmodded", "homp_len")]
+		ones_sum[,name:=paste0(substr(typ, 1, 3), pmodded, homp_len)]
+		setkey(ones_sum, name)
+		ones = ones_sum[,c("name", "n")][ref_ones]
+	}else{
+		ones = ref_ones
+		ones$n = NA
+	}
+
+	
+	### 2bpdel[rep1-6+], 3bpdel[rep1-6+], 4bpdel[rep1-6+],5+bpdel[rep1-6+], then insertions, same thing
+	large_d = rbind(large_d[!(typ == "deletion" & reps == 1)], microhom_failed, fill = T)
+	large_d[,discrete_len:=size]
+	large_d[discrete_len >=5,discrete_len:=5]
+	large_d[typ == "insertion" & reps == 6,reps:=5]
+	d_sum = large_d[order(typ, discrete_len, reps)][,.(n = .N), by = c("typ", "discrete_len", "reps")]
+	d_sum[,name:=paste0("rep", substr(typ, 1, 3), discrete_len, reps)]
+	setkey(d_sum, name)
+	ref_large = rbind(data.table(expand.grid("repdel", 2:5, 1:6)), data.table(expand.grid("repins", 2:5, 0:5)))
+	ref_large[,name:=paste0(Var1, Var2, Var3)]
+	ref_large = ref_large[,"name"][order(name)]
+	setkey(ref_large, name)
+	d_sum = d_sum[,c("name", "n")][ref_large]
+	
+	## MicrohomD[2]_len1, MicrohomD[3]_len1-2, MicrohomD[4]_len1-3, Microhom[5+]_len1-5+, 
+	indel_catalog = rbind(ones, d_sum, microhom_sum)
+	indel_catalog[is.na(n),n:=0]
+	indel_catalog[,name:=factor(name, levels = name)]
+	if(sum(indel_catalog$n) != nrow(indat)){
+		stop("You lost or gained indels during processing")
+	}
+	colors = c(rep("#FEC984", 6), 
+						 rep("#FF9100", 6), 
+						 rep("#BCDF9C", 6), 
+						 rep("#43AC3D", 6), 
+						 rep("#FED3C1", 6), 
+						 rep("#FF9A7F", 6),
+						 rep("#F55D43", 6),
+						 rep("#CF2C1E", 6),
+						 rep("#D9E6F3", 6),
+						 rep("#A4CEE7", 6),
+						 rep("#5CA6D2", 6),
+						 rep("#1678BA", 6),
+						 rep("#E8E6F3", 1),
+						 rep("#C4C3E1", 2),
+						 rep("#9799C7", 3),
+						 rep("#7557AA", 5))
+	if(matrix){
+		return(indel_catalog)
+	}
+	base_plot = ggplot(indel_catalog, aes(x = name, y = n)) + geom_bar(stat = "identity", fill = colors) + theme_cowplot() + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(0,0,0,0), "cm")) + scale_y_continuous(expand = c(0,0))
+	blocks = seq(from = 1, to = 73, by = 6)
+	blocks = blocks - 0.5
+	blocks2 = blocks + 6
+	blocks = c(blocks, 73.5, 75.5, 78.5)
+	blocks2 = c(blocks2[-13], 73.5, 75.5, 78.5, 83.5)
+	blockdf = data.frame(x1 = blocks, x2 = blocks2, colors = unique(colors), labs = c("C","T", "C", "T", "2", "3", "4", "5+", "2", "3", "4", "5+", "2", "3", "4", "5+"))
+	boxes = ggplot(blockdf, aes(xmin = x1, xmax = x2, ymin=0, ymax = max(indel_catalog$n))) + geom_rect(fill = unique(colors)) + theme_cowplot() + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	#boxes + geom_fit_text(grow = F)
+	boxes_top = boxes + geom_fit_text(aes(label = labs), grow = F)
+	
+	annotations_df = data.frame(x1 = c(0, 12.5, 24.5, 48.5, 72.5), x2 = c(12.5, 24.5, 48.5, 72.5, 83), label = c("\n1bp Insertion", "\n1bp Deletion", "2+bp Deletion\n(Deletion Length)", "2+bp Insertion\n(Insertion Length)", "Microhomology Del\n(Deletion Length)"))
+	annos = ggplot(annotations_df, aes(xmin = x1, xmax = x2, ymin = 0, ymax = max(indel_catalog$n), label = label)) + geom_rect(fill = "#FF000000") + theme_cowplot() + geom_fit_text(grow = F) + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	bottext = data.frame(x = 1:83, lab = c(rep(c(1:5, "6+"), times = 2), rep(c(0:4, "5+"), times = 2), rep(c(1:5, "6+"), times = 4), rep(c(0:4, "6+"), times = 4), 1, 1:2, 1:3, 1:4, "5+"))
+	bot_box = ggplot(bottext, aes(xmin = x-0.5, xmax = x+0.5, ymin = 0, ymax = max(indel_catalog$n), label = lab)) + geom_text() + theme_cowplot()+ ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	#anno2 = ggplot(annotations_df, aes(x = (x1+x2)/2, y = 0, label = label)) + geom_text() + theme_cowplot() + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	p = plot_grid(annos, boxes_top, base_plot, boxes, ncol = 1, rel_heights = c(0.2, 0.15, 1, 0.15))
+	
+	#p = ggplot(indel_catalog, aes(x = name, y = n)) + geom_bar(stat = "identity", fill = colors) + theme_cowplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_y_continuous(expand = c(0,0))
+	return(p)
+}
+
+plot_indels_minimal = function(indat, matrix = F){
+	indat = indat[nchar(REF) != nchar(ALT) & (nchar(REF) == 1 | nchar(ALT) == 1)]
+	indat[,typ:="insertion"]
+	indat[nchar(REF) > nchar(ALT),typ:="deletion"]
+	indat[,size:=abs(nchar(REF)-nchar(ALT))]
+	## We have a number of categories to deal with
+	### 1bp del/ins of a C/T, homopolymer length 1/0-6/5+
+	### 2-5+bp del/ins of 2/1-6/5+ repeats
+	### 2-5+bp del of 1-5+ microhomologies
+	## Firstly we do the 1bp indels
+	ones = indat[size == 1]
+	if(nrow(ones) > 0){
+		ones[,modded:=ifelse(nchar(REF) > nchar(ALT), yes = substr(REF, 2, 2), no = substr(ALT, 2, 2))]
+		ones[,up:=POS-6]
+		ones[,down:=POS+6]
+		ones[,chrchrom:=paste0("chr", CHROM)]
+		gr = makeGRangesFromDataFrame(df = ones, seqnames.field = "chrchrom", start.field = "up", end.field = "down")
+		seq_context  = as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))
+		ones[,seqs:=seq_context]
+		homopolymers = function(search_seq, base){
+			## First get a vector of the sequence
+			search_seq = unlist(strsplit(search_seq, ""))
+			pos = 8
+			direction = 1
+			hom_length = 0
+			done = F
+			while(!done){
+				query_seq = search_seq[pos]
+				if(query_seq == base){
+					hom_length = hom_length + 1
+				}else if(query_seq != base){
+					## We didn't find a continuation of the homopolymer
+					if(direction == 1){
+						direction = -1
+						pos = 8
+					}else{
+						done = T
+					}
+				}
+				if(pos == length(search_seq)){
+					direction = -1
+					pos = 8
+				}
+				pos = pos + direction
+			}
+			return(hom_length)
+		}
+		ones[,homp_len:=homopolymers(seqs, modded), by = 1:nrow(ones)]
+	}
+	## Now we look at >1bp indels
+	## Strategy: Assume everything is a repeat indel
+	## Then, we take the 1-rep indels and check them for microhomologies
+	large = indat[size > 1]
+	nlarge = nrow(large)
+	large[,modded_seq:=ifelse(nchar(REF) > nchar(ALT), yes = substr(REF, 2, nchar(REF)), no = substr(ALT, 2, nchar(ALT)))]
+	large[,chrchrom:=paste0("chr", CHROM)]
+	large[,up:=POS - size + 1]
+	large[,down:=POS+size]
+	large[,pos2:=POS]
+	large[,pos3:=POS+1]
+	large[,upseq:="N"]
+	large[,downseq:="N"]
+	large[,reps:=0]
+	large[,c("left","right"):=0]
+	n_repeats = 0
+	# Do the initial iteration out here, because we need to look both up and down. Afterward we set a direction and iteratively look in that direction+
+	## Get upstream and downstream sequences
+	gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "up", end.field = "pos2")
+	large[,upseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+	gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "pos3", end.field = "down")
+	large[,downseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+	## I think this should never trigger, but put this here to be sure
+	if(nrow(large[modded_seq == upseq & modded_seq == downseq]) > 0){
+		stop("Edge case detected - improve the program")
+	}
+	## Decide if we're looking upstream or downstream for more repeats
+	large[,direction:=ifelse(modded_seq == upseq, yes = -1, no = 1)]
+	## Append the non-repetitive seqs to this table, filter down table
+	large_d = large[0]
+	large_d = rbind(large_d, large[!(modded_seq == upseq | modded_seq == downseq)])
+	large = large[(modded_seq == upseq | modded_seq == downseq)]
+	## Define left and right bounds of new intervals
+	large[,left:=ifelse(direction > 0, yes = pos3 + size, no = up - size)]
+	large[,right:=ifelse(direction > 0, yes = down+size, no = pos2 - size)]
+	n_repeats = 1
+	while(nrow(large) > 1 & n_repeats < 6){
+		large[,reps:=n_repeats]
+		gr = makeGRangesFromDataFrame(df = large, seqnames.field = "chrchrom", start.field = "left", end.field = "right")
+		large[,downseq:=as.character(getSeq(BSgenome.Hsapiens.UCSC.hg19, gr))]
+		large_d = rbind(large_d, large[!(modded_seq == upseq | modded_seq == downseq)])
+		large = large[(modded_seq == upseq | modded_seq == downseq)]
+		large[,left:=left+(size*direction)]
+		large[,right:=right+(size*direction)]
+		n_repeats = n_repeats + 1
+	}
+	large[,reps:=n_repeats]
+	large_d = rbind(large_d, large)
+	## Now we process the microhomology deletions
+	microhom_candidates = large_d[typ == "deletion" & reps == 1]
+	n_microhom_candidates = nrow(microhom_candidates)
+	## If l = length(del), we begin with length= l-1 microhomologies
+	microhom_d = microhom_candidates[0]
+	micro_len = 1
+	while(nrow(microhom_candidates) > 0){
+		microhom_candidates[,micro_search:=micro_len]
+		microhom_candidates[,check_del:=substr(modded_seq, 1, nchar(modded_seq) - micro_len)]
+		microhom_candidates[,check_upseq:=substr(upseq, 1 + micro_len, nchar(upseq))]
+		microhom_candidates[,check_downseq:=substr(downseq, 1, nchar(downseq) - micro_len )]
+		microhom_d = rbind(microhom_d, microhom_candidates[check_del == check_upseq | check_del == check_downseq], fill = TRUE)
+		microhom_candidates = microhom_candidates[!(check_del == check_upseq | check_del == check_downseq)]
+		micro_len = micro_len + 1
+	}
+	if(nrow(microhom_d) > 0){
+		microhom_d[,micro_size:=nchar(check_del)]
+		microhom_failed = microhom_d[nchar(check_del) == 0]
+		microhom_d = microhom_d[nchar(check_del) > 0]
+		microhom_d[,discrete_len:=size]
+		microhom_d[discrete_len >=5,discrete_len:=5]
+		microhom_d[,discrete_micro:=micro_size]
+		microhom_d[discrete_micro >= 5,discrete_micro:=5]
+		microhom_sum = microhom_d[order(discrete_len, discrete_micro)][discrete_micro > 0,.(n = .N), by = c("discrete_len", "discrete_micro")]
+		microhom_sum[,name:=paste0("micro", discrete_len, discrete_micro)]
+		setkey(microhom_sum, name)
+		ref_microhom = data.table("Var1" = "micro", "Var2" = c(rep(2, 1), rep(3, 2), rep(4, 3), rep(5,5)), "Var3" = c(1, 1:2, 1:3, 1:5))
+		ref_microhom[,name:=paste0(Var1, Var2, Var3)]
+		setkey(ref_microhom, name)
+		microhom_sum = microhom_sum[,c("name", "n")][ref_microhom[,"name"]]
+	}else{
+		ref_microhom = data.table("Var1" = "micro", "Var2" = c(rep(2, 1), rep(3, 2), rep(4, 3), rep(5,5)), "Var3" = c(1, 1:2, 1:3, 1:5))
+		ref_microhom[,name:=paste0(Var1, Var2, Var3)]
+		ref_microhom[,n:=NA]
+		microhom_sum = ref_microhom[,c("name", "n")]
+		microhom_failed = data.table()
+	}
+	## Now summarize it all into a vector
+	### 1bpdel[C,T], 1bpins[C,T]
+	
+	ref_ones = rbind(data.table(expand.grid(c("del"), c("C", "T"), 1:6)), data.table(expand.grid(c("ins"), c("C", "T"), 0:5)))
+	ref_ones[,name:=paste0(Var1, Var2, Var3)]
+	ref_ones = ref_ones[,"name"]
+	setkey(ref_ones, name)
+	if(nrow(ones) > 0){
+		ones[,pmodded:=modded]
+		ones[modded == "G",pmodded:="C"]
+		ones[modded == "A",pmodded:="T"]
+		ones[typ == "insertion" & homp_len == 6,homp_len:=5]
+		ones_sum = ones[order(typ, pmodded, homp_len)][,.(n = .N), by = c("typ", "pmodded", "homp_len")]
+		ones_sum[,name:=paste0(substr(typ, 1, 3), pmodded, homp_len)]
+		setkey(ones_sum, name)
+		ones = ones_sum[,c("name", "n")][ref_ones]
+	}else{
+		ones = ref_ones
+		ones$n = NA
+	}
+
+	
+	### 2bpdel[rep1-6+], 3bpdel[rep1-6+], 4bpdel[rep1-6+],5+bpdel[rep1-6+], then insertions, same thing
+	large_d = rbind(large_d[!(typ == "deletion" & reps == 1)], microhom_failed, fill = T)
+	large_d[,discrete_len:=size]
+	large_d[discrete_len >=5,discrete_len:=5]
+	large_d[typ == "insertion" & reps == 6,reps:=5]
+	d_sum = large_d[order(typ, discrete_len, reps)][,.(n = .N), by = c("typ", "discrete_len", "reps")]
+	d_sum[,name:=paste0("rep", substr(typ, 1, 3), discrete_len, reps)]
+	setkey(d_sum, name)
+	ref_large = rbind(data.table(expand.grid("repdel", 2:5, 1:6)), data.table(expand.grid("repins", 2:5, 0:5)))
+	ref_large[,name:=paste0(Var1, Var2, Var3)]
+	ref_large = ref_large[,"name"][order(name)]
+	setkey(ref_large, name)
+	d_sum = d_sum[,c("name", "n")][ref_large]
+	
+	## MicrohomD[2]_len1, MicrohomD[3]_len1-2, MicrohomD[4]_len1-3, Microhom[5+]_len1-5+, 
+	indel_catalog = rbind(ones, d_sum, microhom_sum)
+	indel_catalog[is.na(n),n:=0]
+	indel_catalog[,name:=factor(name, levels = name)]
+	if(sum(indel_catalog$n) != nrow(indat)){
+		stop("You lost or gained indels during processing")
+	}
+	colors = c(rep("#FEC984", 6), 
+						 rep("#FF9100", 6), 
+						 rep("#BCDF9C", 6), 
+						 rep("#43AC3D", 6), 
+						 rep("#FED3C1", 6), 
+						 rep("#FF9A7F", 6),
+						 rep("#F55D43", 6),
+						 rep("#CF2C1E", 6),
+						 rep("#D9E6F3", 6),
+						 rep("#A4CEE7", 6),
+						 rep("#5CA6D2", 6),
+						 rep("#1678BA", 6),
+						 rep("#E8E6F3", 1),
+						 rep("#C4C3E1", 2),
+						 rep("#9799C7", 3),
+						 rep("#7557AA", 5))
+	if(matrix){
+		return(indel_catalog)
+	}
+	base_plot = ggplot(indel_catalog, aes(x = name, y = n)) + geom_bar(stat = "identity", fill = colors) + theme_bw() + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none", panel.grid.minor = element_blank(), panel.grid.major.x = element_blank()) + scale_y_continuous(expand = c(0,0))
+	blocks = seq(from = 1, to = 73, by = 6)
+	blocks = blocks - 0.5
+	blocks2 = blocks + 6
+	blocks = c(blocks, 73.5, 75.5, 78.5)
+	blocks2 = c(blocks2[-13], 73.5, 75.5, 78.5, 83.5)
+	blockdf = data.frame(x1 = blocks, x2 = blocks2, colors = unique(colors), labs = c("C","T", "C", "T", "2", "3", "4", "5+", "2", "3", "4", "5+", "2", "3", "4", "5+"))
+	boxes = ggplot(blockdf, aes(xmin = x1, xmax = x2, ymin=0, ymax = max(indel_catalog$n))) + geom_rect(fill = unique(colors)) + theme_cowplot() + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	#boxes + geom_fit_text(grow = F)
+	boxes_top = boxes + geom_fit_text(aes(label = labs), grow = F)
+	
+	annotations_df = data.frame(x1 = c(0, 12.5, 24.5, 48.5, 72.5), x2 = c(12.5, 24.5, 48.5, 72.5, 83), label = c("\n1bp Insertion", "\n1bp Deletion", "2+bp Deletion\n(Deletion Length)", "2+bp Insertion\n(Insertion Length)", "Microhomology Del\n(Deletion Length)"))
+	annos = ggplot(annotations_df, aes(xmin = x1, xmax = x2, ymin = 0, ymax = max(indel_catalog$n), label = label)) + geom_rect(fill = "#FF000000") + theme_cowplot() + geom_fit_text(grow = F) + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	bottext = data.frame(x = 1:83, lab = c(rep(c(1:5, "6+"), times = 2), rep(c(0:4, "5+"), times = 2), rep(c(1:5, "6+"), times = 4), rep(c(0:4, "6+"), times = 4), 1, 1:2, 1:3, 1:4, "5+"))
+	bot_box = ggplot(bottext, aes(xmin = x-0.5, xmax = x+0.5, ymin = 0, ymax = max(indel_catalog$n), label = lab)) + geom_text() + theme_cowplot()+ ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	#anno2 = ggplot(annotations_df, aes(x = (x1+x2)/2, y = 0, label = label)) + geom_text() + theme_cowplot() + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	p = plot_grid(base_plot, boxes, ncol = 1, rel_heights = c(1, 0.15))
+	
+	#p = ggplot(indel_catalog, aes(x = name, y = n)) + geom_bar(stat = "identity", fill = colors) + theme_cowplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_y_continuous(expand = c(0,0))
+	return(base_plot)
+}
+
+
+plot_frequencies = function(indel_catalog, ylab = "n"){
+	colors = c(rep("#FEC984", 6), 
+						 rep("#FF9100", 6), 
+						 rep("#BCDF9C", 6), 
+						 rep("#43AC3D", 6), 
+						 rep("#FED3C1", 6), 
+						 rep("#FF9A7F", 6),
+						 rep("#F55D43", 6),
+						 rep("#CF2C1E", 6),
+						 rep("#D9E6F3", 6),
+						 rep("#A4CEE7", 6),
+						 rep("#5CA6D2", 6),
+						 rep("#1678BA", 6),
+						 rep("#E8E6F3", 1),
+						 rep("#C4C3E1", 2),
+						 rep("#9799C7", 3),
+						 rep("#7557AA", 5))
+	base_plot = ggplot(indel_catalog, aes(x = name, y = n)) + geom_bar(stat = "identity", fill = colors) + theme_cowplot() + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(0,0,0,0), "cm")) + ylab(ylab) +  scale_y_continuous(expand = c(0,0))
+	blocks = seq(from = 1, to = 73, by = 6)
+	blocks = blocks - 0.5
+	blocks2 = blocks + 6
+	blocks = c(blocks, 73.5, 75.5, 78.5)
+	blocks2 = c(blocks2[-13], 73.5, 75.5, 78.5, 83.5)
+	blockdf = data.frame(x1 = blocks, x2 = blocks2, colors = unique(colors), labs = c("C","T", "C", "T", "2", "3", "4", "5+", "2", "3", "4", "5+", "2", "3", "4", "5+"))
+	boxes = ggplot(blockdf, aes(xmin = x1, xmax = x2, ymin=0, ymax = max(indel_catalog$n))) + geom_rect(fill = unique(colors)) + theme_cowplot() + ylab(ylab) + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	#boxes + geom_fit_text(grow = F)
+	boxes_top = boxes + geom_fit_text(aes(label = labs), grow = F)
+	
+	annotations_df = data.frame(x1 = c(0, 12.5, 24.5, 48.5, 72.5), x2 = c(12.5, 24.5, 48.5, 72.5, 83), label = c("\n1bp Insertion", "\n1bp Deletion", "2+bp Deletion\n(Deletion Length)", "2+bp Insertion\n(Insertion Length)", "Microhomology Del\n(Deletion Length)"))
+	annos = ggplot(annotations_df, aes(xmin = x1, xmax = x2, ymin = 0, ymax = max(indel_catalog$n), label = label)) + geom_rect(fill = "#FF000000") + theme_cowplot() + geom_fit_text(grow = F) + ylab(ylab) + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	bottext = data.frame(x = 1:83, lab = c(rep(c(1:5, "6+"), times = 2), rep(c(0:4, "5+"), times = 2), rep(c(1:5, "6+"), times = 4), rep(c(0:4, "6+"), times = 4), 1, 1:2, 1:3, 1:4, "5+"))
+	bot_box = ggplot(bottext, aes(xmin = x-0.5, xmax = x+0.5, ymin = 0, ymax = max(indel_catalog$n), label = lab)) + geom_text() + theme_cowplot()+ ylab(ylab) + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	#anno2 = ggplot(annotations_df, aes(x = (x1+x2)/2, y = 0, label = label)) + geom_text() + theme_cowplot() + ylab("n") + theme(axis.line = element_line(color = "#FF000000"), axis.text = element_text(color = "#FF000000"), axis.ticks = element_line(color = "#FF000000"), axis.title = element_text(color = "#FF000000"), plot.margin = unit(c(0,0,0,0), "cm")) + scale_x_continuous(expand = c(0,0))
+	
+	p = plot_grid(annos, boxes_top, base_plot, boxes, ncol = 1, rel_heights = c(0.2, 0.15, 1, 0.15))
+	return(p)
+
+}
+
+
+psum <- function(x,na.rm=FALSE) { 
+    rowSums(do.call(cbind,x),na.rm=na.rm) 
+	} 
+
+
+draw_label_theme <- function(label, theme = NULL, element = "text", size = NULL, ...) {
+  if (is.null(theme)) {
+    theme <- ggplot2::theme_get()
+  }
+  if (!element %in% names(theme)) {
+    stop("Element must be a valid ggplot theme element name")
+  }
+
+	if (is.null(size)){
+		size = elements$size
+	}
+	
+  elements <- ggplot2::calc_element(element, theme)
+
+  cowplot::draw_label(label, 
+                      fontfamily = elements$family,
+                      fontface = elements$face,
+                      colour = elements$color,
+                      size = size,
+                      ...
+  )
+}
+
+cosine_similarity <- function(vec1, vec2) {
+  # Ensure the vectors are numeric
+  if (!is.numeric(vec1) || !is.numeric(vec2)) {
+    stop("Both inputs must be numeric vectors.")
+  }
+  
+  # Check that the vectors have the same length
+  if (length(vec1) != length(vec2)) {
+    stop("Vectors must have the same length.")
+  }
+  
+  # Calculate the dot product of the vectors
+  dot_product <- sum(vec1 * vec2)
+  
+  # Calculate the magnitudes of the vectors
+  magnitude_vec1 <- sqrt(sum(vec1^2))
+  magnitude_vec2 <- sqrt(sum(vec2^2))
+  
+  # Avoid division by zero
+  if (magnitude_vec1 == 0 || magnitude_vec2 == 0) {
+    stop("One or both vectors have zero magnitude.")
+  }
+  
+  # Calculate and return the cosine similarity
+  cosine_sim <- dot_product / (magnitude_vec1 * magnitude_vec2)
+  return(cosine_sim)
+}
+
+```
+
+
+```{r metadata, include = FALSE, echo = FALSE, cache = TRUE}
+#args = params$args
+#tbl = fread(args["daughter"], header = F)
+tbl = fread("/gpfs/data/petljaklab/data/studies/MPP000003/analyses/INDEL/hg19/daughters_table.txt")
+names(tbl) = c("std_path", "name", "line", "cell", "treatment", "culture_time")
+tbl[,analysis_path:=dirname(dirname(std_path))]
+```
+
+```{r read_data, include = FALSE, cache = TRUE}
+paths = tbl$analysis_path
+paths = paste0(tbl$analysis_path, "/mutect2/indels.txt")
+m2_dat = lapply(1:length(paths), function(x){
+	d = fread(cmd = paste0("awk '(length($4) != length($5) || NR == 1){print $0}' ", paths[x]))[nchar(REF) != 1 | nchar(ALT) != 1]
+	d[,name:=tbl[x]$name]
+	d[,lineage:=tbl[x]$line]
+	d[,cell:=tbl[x]$cell]
+	## Figure out which column is the tumor sample
+	ads = names(d)[grepl("\\.AD", names(d))]
+	opt1 = unlist(d[1:50,.SD,.SDcols = ads[1]])
+	sum(grepl(",0$", opt1))
+	opt2 = unlist(d[1:50,.SD,.SDcols = ads[2]])
+	sum(grepl(",0$", opt2))
+	parent_ind = as.numeric(sum(grepl(",0$", opt1)) < sum(grepl(",0$", opt2))) + 1
+	daught_ind = as.numeric(sum(grepl(",0$", opt1)) > sum(grepl(",0$", opt2))) + 1
+	setnames(d, ads[parent_ind], "normal.AD")
+	setnames(d, ads[daught_ind], "tumor.AD")
+	cols = c("CHROM", "POS", "REF", "ALT", "FILTER", "tumor.AD", "normal.AD", "name", "lineage", "cell")
+	d = d[,..cols]
+	names(d)[6] = "AD"
+	names(d)[7] = "PAD"
+	return(d)
+})
+m2_dat = rbindlist(m2_dat)
+
+m2_dat[,n_lineage:=.N, by = c("CHROM", "POS", "REF", "ALT", "lineage")]
+m2_dat[,n:=.N, by = c("CHROM", "POS", "REF", "ALT", "cell")]
+
+m2_dat = m2_dat[FILTER == "PASS"]
+setkey(m2_dat, CHROM, POS, REF, ALT)
+m2_dat[,iden:=1:.N]
+
+```
+
+## Introduction
+
+This document outlines Insertion and Deletion (InDel, or ID) mutation filtering in parent:daughter cell line experiments in the Petljak lab. 
+
+Indels are called using the Mutect2 variant caller, available through GATK. Optionally, Varscan2 and Strelka2 are also run for consensus calling. By default, they will filter out mutations with low sequence quality, mapping quality, and other metrics. However, some undesirable mutations will remain. 
+
+The goal of parent:daughter cell line experiments is to identify mutations arising during a controlled and specific treatment time. Mutations in daughter samples can be grouped into the following 3 categories:
+
+1. Germline variants in the human donor
+
+2. Somatic mutations acquired during the human donor's lifetime
+
+3. Somatic mutations acquired during historic culturing of the cell line
+
+4. Somatic mutations acquired during the experiment
+
+We need to remove mutations arising from categories 1-3, while retaining mutations from category 4. To do this, we impose a clonal bottleneck, by single-cell cloning of the parental cell line into a daughter clone which is then allowed to grow and is used in the experiment. Consequently all mutations in categories 1-3 will be clonal. Two issues persist, however - if the previous clonal bottleneck was not recent, a large proportion of mutations in category 3 will be subclonal and not reliably detected. Secondly, mutations might not be detected in the a parental sample simply due to random chance. In these cases, identifying these mutations in the daughters using orthogonal information is vital. 
+
+In this document we detail an overview of our **post-hoc** filtering. Unlike SBS mutations, germline/artifact indel profiles are not obvious, so we approach filtering through sensibility and orthogonal experience from SBS mutations. To this end, we apply the same filters as we do in SBS. 
+
+You are assumed to have an understanding of the [ID83 spectrum](https://cancer.sanger.ac.uk/signatures/id/), which is used heavily in plots here. Additional annotation of these figures is omitted for space-saving reasons. The colors of the mutation categories are consistent with COSMIC. 
+
+![](v3.2_ID4_PROFILE_G.width-2400.format-jpeg.jpegquality-55.jpg)
+
+Above is an example of an ID mutation signature. The first (orange and green) categories refer to 1bp deletions and 1bp insertions of increasing homopolymer lengths. Next, >1bp deletions of increasing repeat lengths, and likewise for insertions are quantified. Finally, deletions of regions with microhomologies to neighbouring regions are quantified. 
+
+We begin by plotting out the different categories of variants to visualize their proportions across samples in the Maciejowski Lung collaboration study. The variants are separated into the following five groups:
+
+	i.   If the mutation has <15x coverage in parent, it is filtered and labeled accordingly
+	ii.  If the mutation is present in >50% of all parents from that cell line, it is
+	filtered and labeled accordingly.
+	iii. If the mutation is present in any daughter derived from a different parent,
+	it is	filtered and labeled accordingly.
+	iv.  If the mutation is present in other related daughters, it is **not**
+	filtered, but labeled
+	v.   Mutations private to the daughter are **not** filtered and labeled as unique. 
+	
+
+\newpage
+
+## Mutation summaries
+
+```{r general_overview, fig.height=6, fig.width=20, echo = FALSE, cache = TRUE}
+parents = fread("/gpfs/data/petljaklab/data/studies/MPP000003/analyses/MUTECT_CELLLINE/hg19/parents_table.txt", header = F)
+parents_mutations = lapply(1:nrow(parents), function(x){
+	d = fread(cmd = paste0("awk 'NR==1{print $0}(length($4) != length($5)){print $0}' ",  parents$V1[x]))
+	d$samp = parents$V2[x]
+	return(d)
+	}
+)
+invisible(gc(verbose = F))
+
+parents_mutations = rbindlist(parents_mutations)
+
+parents_mutations[,line:=gsub("(.*)_.*", "\\1", samp)]
+
+parents_mutations[,als:=str_count(tumor.AD, ",")]
+
+parents_mutations[als>1,id:=1:.N]
+
+#parents_mutations[!is.na(id)]
+
+parents_mutations[als > 1,AD:=paste0(unlist(strsplit(tumor.AD, ","))[c(1,which(ALT == unlist(strsplit(tumor.GT, "(/|\\|)"))))], collapse = ","), by = id]
+
+parents_mutations[,c("r", "a"):=tstrsplit(AD, ",")]
+
+parents_mutations = parents_mutations[a > 0]
+
+parents_mutations[,n_line:=length(unique(samp)), by = line]
+
+parents_mutations[,n:=.N, by = c("CHROM", "POS", "REF", "ALT", "line")]
+
+
+parents_filtset = parents_mutations[n > n_line/2]
+setkey(parents_filtset, CHROM, POS, REF, ALT)
+
+p_remove = m2_dat[parents_filtset][!is.na(name)]$iden
+
+m2_dat$iden = NULL
+
+
+m2_dat[n == 1,tumor.LAB:="unq"]
+m2_dat[n_lineage > 1,tumor.LAB:="shared_lineage"]
+m2_dat[n > 1 & n_lineage != n,tumor.LAB:="shared_external"]
+m2_dat[p_remove, tumor.LAB:="shared_parental"]
+m2_dat[PAD < 15, tumor.LAB:="depth"]
+m2_dat[tumor.LAB %in% c("shared_external", "shared_parental", "depth"),FILTER:=tumor.LAB]
+#m2_dat[p_remove]
+
+m2_dat[,tumor.LAB:=factor(tumor.LAB, levels = c("depth", "shared_parental", "shared_external", "shared_lineage", "unq"))]
+
+m2_dat[,genotype:=gsub("^([^_]*_)([A-Z])[0-9]*", "\\2", lineage)]
+
+long_label_descriptions = c("depth" = "Insufficient parental depth (<15x) (FAIL)", "shared_parental" = "Mutation present in >50% parents (FAIL)", "shared_external" = "Mutation present in other non-lineage daughters (FAIL)", "shared_lineage" = "Mutation present in the same lineage (PASS)", "unq" = "Mutation is private (PASS)")
+long_label_wrap = stringr::str_wrap(long_label_descriptions, width = 20)
+
+```
+
+```{r general_overview_plots, fig.height=8, fig.width=11, echo = FALSE, cache = TRUE}
+for(c in unique(m2_dat$cell)){
+	genotypes = sort(unique(m2_dat[cell == c]$genotype))
+	for(geno in genotypes){
+			print(ggplot(m2_dat[cell == c][genotype == geno], aes(x = name, fill = tumor.LAB)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_fill_discrete(labels = long_label_wrap, name = "Mutation\nAnnotation") + ggtitle(paste0("Filtering of InDel mutations for cell line ", c, "\nCondition: ", geno)) + xlab("Sample") + ylab("Indel Count"))
+	}
+}
+
+
+```
+
+\newpage
+## Filtering summaries
+
+As previously mentioned, we apply flags to mutations using information derived from both related and unrelated parent and daughter cells. "Filtered" indicates that the mutation is deemed to be not relevant to the experiment, due to being either germline, pre-existing somatic, or an artifact. We label each mutation according to the aforementioned five categories. 
+
+### Low coverage in parent
+
+In order to properly assess if a mutation is pre-existing, we require evidence that it is not present in the parental sample. 15x coverage is a common cutoff for this value, meaning that if a position has less than 15x coverage we do not have enough data to confidently assess a mutation's pre-existing or de novo status. 
+
+### Present in >50% of parents
+Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in another parent from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The ID spectra of these mutations is clearly different from other categories, and based on this and and SBS data we assume these mutations to be pre-existing. 
+
+### Present in daughters from different parents
+If two daughters derived from different single-cell clones share the same mutations, it is very likely that the mutation is either due to technical noise (explaining why it was reproduced), it was a pre-existing somatic mutation (which should be removed), or it is a hotspot mutation (which should be rare and can be rescued at a later time). Visually it can be seen that the spectra of these mutations are different compared to private mutations.
+
+
+### Present in multiple daughters from the same parent
+This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - for example in a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first few cell divisions, it is increasingly unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. These mutations are true de novo mutations acquired in the experiment, and consequently they are retained in the final variant callset. 
+
+### Unique mutations
+These mutations passed all of the above filters. They are high quality, private to each daughter, and were not found in any parents. They represent the mutations which we are most confident in. 
+
+### Plots
+The following pages plot 83-channel ID spectra of four of the above categories for each cell line and genotype. We skip the 15x parental coverage category for two reasons. First, the category is largely self-explanatory. Secondly, this results in an even number of plots, which conserves space. 
+
+```{r, ncol = 1, echo = FALSE, fig.height=2, fig.width=8, out.extra='trim=0 0 0 0,clip', out.width='0.8\\paperwidth', cache = T, fig.align='center'}
+
+label_dict = c("shared_parental" = ">50%Parents",
+							 "shared_external" = "UnrelatedDaughters",
+							 "shared_lineage" = "RelatedDaughters",
+							 "unq" = "Unique")
+for(c in unique(m2_dat$cell)){
+	genotypes = sort(unique(m2_dat[cell == c]$genotype))
+	for(geno in genotypes){
+		line_plts = list()
+		filts = sort(unique(m2_dat[cell == c][genotype == geno]$tumor.LAB))
+		for(f in filts[filts != "depth"]){
+				p = plot_indels_minimal(m2_dat[cell == c][genotype == geno][tumor.LAB == f]) + ggtitle(paste0(c, "\n", label_dict[f], "\nGenotype:", geno))  + theme(axis.text.y = element_blank()) + ylab("ID Count") + xlab("Sequence context")
+				line_plts = c(line_plts, list(p))				
+		}
+		print(plot_grid(plotlist = line_plts, nrow = 1))
+	}
+}
+
+
+```
+
+## Mutation profiles of all daughter clones
+
+```{r fig.height=10, fig.width=8, cache = FALSE, echo = FALSE}
+### Plot 20 per page
+plt_counter = 0
+pltlist = list()
+for(i in sort(unique(tbl$name))){
+	plt_counter = plt_counter + 1
+	p = plot_indels_minimal(m2_dat[name == i][FILTER == "PASS"]) + ggtitle(paste0(i)) + theme(axis.text.y = element_blank(), axis.text.x = element_blank(), plot.title = element_text(size = 8)) + xlab("ID Context") + ylab("ID Count")
+	pltlist = c(pltlist, list(p))
+	if(plt_counter == 20 | i == sort(unique(tbl$name))[length(unique(tbl$name))]){
+		if(plt_counter < 20){
+			len_to_add = 20 - plt_counter
+			blankplt = ggplot() + theme_void()
+			pltlist = c(pltlist, rep(list(blankplt), times = len_to_add))
+		}
+		print(plot_grid(plotlist = pltlist, ncol = 4))
+		#cat("\\newpage")
+		grid.newpage()
+		plt_counter = 0
+		pltlist = list()
+	}
+}
+
+```

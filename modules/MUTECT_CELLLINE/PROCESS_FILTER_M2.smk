@@ -1,6 +1,6 @@
 rule PILEUP_SUMMARIES:
     input:
-        BAM = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
+        BAM = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb", ref = wildcards.reference)[0],
         fa = lambda wildcards: FA_PATHS[wildcards.reference],
     output:
         SUMMARY = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/{pipe}/{analysis}/mutect2/{reference}/pileup.txt",
@@ -13,7 +13,7 @@ rule PILEUP_SUMMARIES:
     resources:
         mem_mb = 3000,
         jv_mem = 2900,
-        slurm_partition = "petljaklab,cpu_short",
+        slurm_partition = config["clusters"][config["parts"]]["short"],
         runtime = 60 * 4,
     shell:
         """
@@ -21,8 +21,8 @@ rule PILEUP_SUMMARIES:
             GetPileupSummaries \
             -I {input.BAM} \
             -R {input.fa} \
-            -V /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/small_exac_common_3.vcf \
-            -L /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/reference_vcf/small_exac_common_3.vcf \
+            -V /gpfs/data/petljaklab/resources/{wildcards.reference}/pipeline_resources/somatic_celline/reference_vcf/small_exac_common_3.vcf \
+            -L /gpfs/data/petljaklab/resources/{wildcards.reference}/pipeline_resources/somatic_celline/reference_vcf/small_exac_common_3.vcf \
             -O {output.SUMMARY} &> {log}
         """
 
@@ -38,7 +38,7 @@ rule COMBINE_MUTECT2_VCFS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/{pipe}/{analysis}/mutect2/{reference}/{type}/merge_vcf.log"
     resources:
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         jv_mem = 2900,
         runtime = 240,
         mem_mb = 3000
@@ -57,7 +57,7 @@ rule MERGE_MUTECT2_STATS:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/{pipe}/{analysis}/mutect2/{reference}/{type}/stats.log",
     resources:
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         runtime = 240,
         jv_mem = 2900,
         mem_mb = 3000
@@ -81,7 +81,7 @@ rule MUTECT2_READ_ORIENTATION:
     resources:
         mem_mb = lambda wildcards, attempt: 5000 * attempt,
         jv_mem = lambda wildcards, attempt: 4500 * attempt,
-        slurm_partition = "petljaklab",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         runtime = 30,
     params:
         inputlist = lambda wildcards, input: " -I ".join([input]) if isinstance(input, str) else " -I ".join(input.files)
@@ -102,7 +102,7 @@ rule MUTECT2_CALCULATE_CONTAMINATION:
     resources:
         mem_mb = 3000,
         jv_mem = 2900,
-        slurm_partition = "petljaklab,cpu_short",
+        slurm_partition = config["clusters"][config["parts"]]["short"],
         runtime = 60 * 4,
     shell:
         """
@@ -130,7 +130,7 @@ rule MUTECT2_FILTERMUTECTCALLS:
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * (1 + ((attempt-1)/2)),
         jv_mem = lambda wildcards, attempt: 3500 * (1 + ((attempt-1)/2)),
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         runtime = 240,
     shell:
         """

@@ -7,7 +7,7 @@ GATK_ALIGNER_VER = "1.0.1"
 
 def get_external_bam_path(wildcards):
     if wildcards.study == "MPP000003":
-        basepath = "/gpfs/data/petljaklab/broad_data/bams/Bams/"
+        basepath = "/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000003/broad_data/bams/Bams/"
         iden = petljakapi.translate.stringtoid(wildcards.sample)
         res = petljakapi.select.multi_select(db = db, table = "samples", filters = {"id":iden}, bench = config["bench"])[0]
         rname = res[1]

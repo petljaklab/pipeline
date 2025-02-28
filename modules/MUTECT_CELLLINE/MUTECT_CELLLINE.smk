@@ -6,18 +6,19 @@ import petljakapi.cellline
 MUTECT_CELLLINE_PIPELINE_VERSION = "1.0.0"
 MUTECT_CELLLINE_PATH = os.path.join(basedir, "modules", "MUTECT_CELLLINE")
 
+#configfile: os.path.join(basedir, "modules", "MUTECT_CELLLINE", "config.yaml")
+#locals().update(config)
 
 include: os.path.join(MUTECT_CELLLINE_PATH, "MUTECT2.smk")
 include: os.path.join(MUTECT_CELLLINE_PATH, "PROCESS_FILTER_M2.smk")
 include: os.path.join(MUTECT_CELLLINE_PATH, "MUTECT2_PARENTAL.smk")
-
 
 def parent_cell(wildcards):
     sample_id = petljakapi.translate.stringtoid(wildcards.sample)
     db_line = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "id", filter_value = sample_id, bench = config["bench"])
     #print(db_line)
     parent_id = petljakapi.translate.idtostring(db_line[0][5], "MPS")
-    parent_merge = gateway("WGS_MERGE_BAM", parent_id, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0]
+    parent_merge = gateway("WGS_MERGE_BAM", parent_id, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb", ref = wildcards.reference)[0]
     return(parent_merge)
 
 rule MUTECT2_CELLLINE_VCFTOTABLE:
@@ -27,7 +28,7 @@ rule MUTECT2_CELLLINE_VCFTOTABLE:
         tab = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/table_raw.txt"
     resources:
         mem_mb = 3000,
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         runtime = 60 * 4,
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/{type}/table.log"
@@ -60,7 +61,7 @@ def get_parents_for_sample(wildcards):
     parental_paths = []
     for parent in all_parental_lines:
         ## First gateway to ensure the parent is made
-        gateway("MUTECT", petljakapi.translate.idtostring(parent[0], "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb")
+        gateway("MUTECT", petljakapi.translate.idtostring(parent[0], "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb", ref = wildcards.reference)
         ## Get the analysis dir
         analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"samples_id":parent[0], "pipeline_name":"MUTECT_CELLLINE"}, bench = config["bench"])
         analysis = analysis[0]
@@ -98,39 +99,41 @@ def full_cell_line_cohort(wildcards):
     for sample in samples_ids:
         #o_list.extend(gateway("MUTECT", petljakapi.translate.idtostring(sample[0], "MPS"), scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = db))
         ## get the analysis ID for this sample
-        analysis = petljakapi.select.multi_select(db, "analyses", {"samples_id":sample[0], "pipeline_name":"MUTECT_CELLLINE"})
+        analysis = petljakapi.select.multi_select(db, "analyses", {"samples_id":sample[0], "pipeline_name":"MUTECT_CELLLINE", "reference_genome":wildcards.reference})
         runs = petljakapi.select.multi_select(db, "runs", {"sample_id":sample[0]})
         if len(analysis) == 0 or len(runs) == 0:
             print(sample)
             continue
-        ## TODO: make this hg-agnostic
         analysis = analysis[0]
         p = analysis[10]
         aid = petljakapi.translate.idtostring(analysis[0], "MPA")
         ## If this sample has daughters
         daughts = petljakapi.cellline.daughter_cells(sample[0], db = db)
-        if daughts:
-            o_list.append(os.path.join(p, aid, "mutect2/hg19/parental/table_raw.txt"))
+        ## If this sample has any parents
         parents = petljakapi.select.multi_select(db, "samples", {"id":sample[5]}, bench = config["bench"])
+        if daughts or not parents:
+            o_list.append(os.path.join(p, aid, "mutect2", wildcards.reference, "parental/table_raw.txt"))
         if parents:
-            o_list.append(os.path.join(p, aid, "mutect2/hg19/germ/table_raw.txt"))
-            o_list.append(os.path.join(p, aid, "mutect2/hg19/std/table_raw.txt"))
+            o_list.append(os.path.join(p, aid, "mutect2", wildcards.reference, "germ/table_raw.txt"))
+            o_list.append(os.path.join(p, aid, "mutect2", wildcards.reference, "std/table_raw.txt"))
     return(o_list)
     
 rule M2_SBS_TABLES:
+    #input:
+    #    data = full_cell_line_cohort
     output:
-        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/daughters_table.txt",
-        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/parents_table.txt",
+        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/daughters_table.txt",
+        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/parents_table.txt",
     threads: 1
     resources:
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         cpus = 1,
         threads = 1,
         mem_mb = 2000,
         runtime = 15,
     run:
-        if not os.path.exists(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/"):
-            os.makedirs(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/")
+        if not os.path.exists(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/{wildcards.reference}"):
+            os.makedirs(f"{SCRATCH_DIR}studies/{wildcards.study}/analyses/MUTECT_CELLLINE/{wildcards.reference}")
         study_id = petljakapi.translate.stringtoid(wildcards.study)
         samples_ids = petljakapi.select.multi_select(db, "samples", {"study_id":study_id})
         for sample in samples_ids:
@@ -138,7 +141,7 @@ rule M2_SBS_TABLES:
             #files = gateway("MUTECT", petljakapi.translate.idtostring(sample[0], "MPS"), scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = db)
             #files = [file for file in files if not file.contains("line_of_origin.txt")]
             ## Get analysis row
-            analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"samples_id":sample[0], "pipeline_name":"MUTECT_CELLLINE"}, bench = config["bench"])
+            analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"samples_id":sample[0], "pipeline_name":"MUTECT_CELLLINE", "reference_genome":wildcards.reference}, bench = config["bench"])
             if len(analysis) == 0:
                 continue
             analysis = analysis[0]
@@ -148,28 +151,28 @@ rule M2_SBS_TABLES:
             daughters = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "sample_parent_id", filter_value = sample[0], bench = config["bench"])
             parent_id = sample[5]
             if parent_id is not None and parent_id != "NULL": ## if this sample has a parent ie. it's a daughter
-                files = ["mutect2/hg19/std/table_raw.txt", "mutect2/hg19/germ/table_raw.txt"]
+                files = [f"mutect2/{wildcards.reference}/std/table_raw.txt", f"mutect2/{wildcards.reference}/germ/table_raw.txt"]
                 files = [os.path.join(ap, aid, f) for f in files]
                 parent_name = petljakapi.select.simple_select(db = db, table = "samples", filter_column = "id", filter_value = parent_id)[0][1]
                 with open(output.daughter, "a") as f:
-                    f.write("%s\n" % '\t'.join([files[0], files[1], sample[1], parent_name, cell_name]))
-            if len(daughters) > 0: ## ie. if this is a parent
-                files = [os.path.join(ap, aid, "mutect2/hg19/parental/table_raw.txt")]
+                    f.write("%s\n" % '\t'.join([files[0], files[1], sample[1], parent_name, cell_name, sample[4], str(sample[7])]))
+            if len(daughters) > 0 or parent_id == "NULL" or parent_id is None: ## ie. if this is a parent
+                files = [os.path.join(ap, aid, "mutect2", wildcards.reference, "parental/table_raw.txt")]
                 with open(output.parental, "a") as f:
-                    f.write("%s\n" % '\t'.join([files[0], sample[1], cell_name]))
+                    f.write("%s\n" % '\t'.join([files[0], sample[1], cell_name, sample[4]]))
 
 
 
 rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
     input:
-        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/daughters_table.txt",
-        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/parents_table.txt",
+        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/daughters_table.txt",
+        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/parents_table.txt",
         data = full_cell_line_cohort
     output:
-        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering_done.txt"
+        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering_done.txt"
     threads: 4
     resources:
-        mem_mb = 150000,
+        mem_mb = 250000,
         slurm_partition = "fn_short",
         threads = 4,
         cpus = 4,
@@ -177,7 +180,7 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
     params:
         script_path = MUTECT_CELLLINE_PATH + "/scripts/filter_mutations.R"
     log:
-        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering.log"
+        SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering.log"
     shell:
         """
         module load r/4.1.2;
@@ -187,14 +190,14 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
 
 rule PROC_FILE:
     input:
-        filt = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/filtering_done.txt",
+        filt = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering_done.txt",
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/filtered_renamed.vcf"
     output:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.vcf"
     threads: 1
     resources:
         mem_mb = 3000,
-        slurm_partition = "petljaklab",
+        slurm_partition =  config["clusters"][config["parts"]]["dev"],
         threads = 1,
         cpus = 1,
         runtime = 10,
@@ -212,7 +215,7 @@ rule PROC_FILE:
 
 rule CELLLINE_OF_ORIGIN:
     input:
-        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb")[0],
+        cell_merge = lambda wildcards: gateway("WGS_MERGE_BAM", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb", ref = wildcards.reference)[0],
         FA = lambda wildcards: FA_PATHS[wildcards.reference],
     output:
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.vcf",
@@ -223,13 +226,13 @@ rule CELLLINE_OF_ORIGIN:
     log:
         SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/qc_genotyping.log",
     resources:
-        slurm_partition = "petljaklab,cpu_dev",
+        slurm_partition = config["clusters"][config["parts"]]["dev"],
         runtime = 240,
         mem_mb = 3000
     shell:
         """
         bcftools mpileup \
-         -R /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt \
+         -R /gpfs/data/petljaklab/resources/{wildcards.reference}/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt \
          --fasta-ref {input.FA} \
          -A {input.cell_merge} 2> {log} | bcftools call -c 2>> {log} > {output.vcf};
         gatk VariantsToTable -V {output.vcf} -O {output.tbl1} 2>> {log};

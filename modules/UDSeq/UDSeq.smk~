@@ -1,0 +1,255 @@
+UDSEQ_BASE_PATH = os.path.join(basedir, "modules", "UDSeq")
+
+def aggregate_udseq_runs(wildcards) -> list:
+    """
+    Takes wildcards as input and generates a list of expected filepaths for the rule GATK_MERGE
+
+    Parameters:
+    wildcards (snakemake.wildcards): Wildcards object from snakemake
+
+    Returns:
+    list: List of aligned.dupsflagged.bam files associated with each run of the sample in wildcards.
+    """
+    ## First get the numeric ID for sample
+    sample_id = petljakapi.translate.stringtoid(wildcards.sample)
+    ## API call for all the runs with that sample id
+    result = petljakapi.select.multi_select(db, "runs", {"sample_id":sample_id, "sequencing_strategy":"UDSEQ"})
+    ## If the sample isn't in the db, throw an error
+    if not result:
+        raise ValueError(f"No runs found for the requested sample {wildcards.sample}")
+    ## Create list of MPR IDs
+    run_ids = [petljakapi.translate.idtostring(line[0], "MPR") for line in result]
+    ## Create list of paths that will be the input for this rule
+    runpaths = expand(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam", run = run_ids, study = wildcards.study, sample = wildcards.sample, analysis = wildcards.analysis, reference = wildcards.reference)
+    return(runpaths)
+
+rule UDSEQ_TRIM:
+    ## Trims fastq files
+    input:
+        lambda wildcards: gateway("FASTQ", wildcards.run, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = config["db"])
+    output:
+        trim1 = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_1.fastq"),
+        trim2 = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_2.fastq")
+    conda: f"{UDSEQ_BASE_PATH}/environment.yaml"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/unaln.bam.log"
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/unaln.benchmark"
+    resources:
+        runtime = 240,
+        iotasks = 2,
+        mem_mb = 4000,
+        jv_mem = 3750,
+        slurm_partition = "petljaklab,cpu_short"
+    params:
+        out_path = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/runs/{wildcards.run}/analyses/UDSEQ_BAM/{wildcards.analysis}/fastq/{wildcards.run}_trimmed"
+    priority: 9999
+    shell:
+        """
+        DupCaller.py trim -i {input[0]} -i2 {input[1]} -p "NNNXXXX" -o {params.out_path}
+        """
+
+rule UDSEQ_UBAM:
+    ## Generates unaligned bam
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_1.fastq",
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_2.fastq"
+    output:
+        ubam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/unaln.bam")
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{GATK_VERSION}.sif"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/unaln.bam.log"
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/unaln.benchmark"
+    resources:
+        runtime = 240,
+        iotasks = 2,
+        mem_mb = 4000,
+        jv_mem = 3750,
+        slurm_partition = "petljaklab,cpu_short"
+    params:
+        TEMP_DIR = TEMP_DIR,
+        TEMP_BAM_PATH = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis +  "/markdups/",
+    priority: 9999
+    shell:
+        """
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            FastqToSam \
+            --FASTQ {input[0]} \
+            --FASTQ2 {input[1]} \
+            --OUTPUT {output.ubam} \
+            --READ_GROUP_NAME {wildcards.run} \
+            --SAMPLE_NAME {wildcards.sample} \
+            --LIBRARY_NAME {wildcards.run} \
+            --PLATFORM ILLUMINA > {log} 2>&1
+        """
+
+
+rule UDSEQ_BWA:
+    input:
+        fastq1 = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_1.fastq",
+        fastq2 = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/fastq/{run}_trimmed_2.fastq",
+        bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
+    output:
+        rawbam = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.raw.sam")
+    threads: ALIGN_THREADS
+    resources:
+        threads = ALIGN_THREADS,
+        cpus = ALIGN_THREADS,
+        mem_mb = 30000,
+        iotasks = 4,
+        slurm_partition = "petljaklab,cpu_medium,fn_medium",
+        tmpdisk = lambda wc, input: int(np.round(input.size_mb))
+    log:
+        bwa = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.bwa.log",
+    singularity: f"/gpfs/data/petljaklab/containers/gatk-alignment/gatk-alignment_{GATK_ALIGNER_VER}.sif"
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.bwa.benchmark"
+    params:
+        tmpfastqpath = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/fastq/",
+        tmpfastq_1 = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/fastq/input_1.fastq",
+        tmpfastq_2 = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/fastq/input_2.fastq"
+    priority: 1002
+    shell:
+        """
+            set +eo pipefail;
+            mkdir -p {params.tmpfastqpath};
+            cp {input.fastq1} {params.tmpfastq_1};
+            cp {input.fastq2} {params.tmpfastq_2};
+            bwa mem -C -M -t {threads} -R "@RG\\tID:{wildcards.run}\\tSM:{wildcards.sample}\\tPL:ILLUMINA" {input.bwa_idxbase} {params.tmpfastq_1} {params.tmpfastq_2} > {output} 2> {log.bwa};
+            if [ $? -ne 0 ]; then
+                rm {params.tmpfastq_1} & rm {params.tmpfastq_2};
+                set -eo pipefail;
+                exit 69;
+            fi;
+            rm {params.tmpfastq_1} {params.tmpfastq_2}
+        """
+
+rule UDSEQ_SORT:
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.raw.sam"
+    output:
+        temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.sorted.bam")
+    threads: ALIGN_THREADS
+    resources:
+        threads = ALIGN_THREADS,
+        cpus = ALIGN_THREADS,
+        mem_mb = 30000,
+        iotasks = 4,
+        slurm_partition = "petljaklab,cpu_medium,fn_medium",
+        tmpdisk = lambda wc, input: int(np.round(input.size_mb))
+    singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
+    log:
+        temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.sorted.log")
+    params:
+        tmp_path = lambda wildcards: TEMP_DIR + wildcards.run + "/" + wildcards.analysis + "/sortbam/sorting",
+    shell:
+        "mkdir -p {params.tmp_path} && samtools sort -@ {threads} -T {params.tmp_path} {input} > {output} 2> {log} || rm -rf {params.tmp_path}; rm -rf {params.tmp_path}"
+
+rule UDSEQ_MARKDUPS:
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.sorted.bam"
+    output:
+        bam = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.bam",
+        metrics = SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.metrics"
+    threads: 1
+    resources:
+        threads = 1,
+        cpus = 1,
+        mem_mb = 8000,
+        jv_mem = 7750,
+        iotasks = 4,
+        slurm_partition = "petljaklab,cpu_medium,fn_medium",
+        tmpdisk = lambda wc, input: int(np.round(input.size_mb))
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_4.4.0.0.sif"
+    log: 
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/runs/{run}/analyses/UDSEQ_BAM/{analysis}/bam/{reference}/aligned.dupsflagged.log",
+    shell:
+        """
+        gatk --java-options '-Xmx{resources.jv_mem}M' \
+            MarkDuplicates \
+            -I {input} \
+            -O {output.bam} \
+            -M {output.metrics} \
+            --READ_NAME_REGEX "(?:.*:)?([0-9]+)[^:]*:([0-9]+)[^:]*:([0-9]+)[^:]*$" \
+            --DUPLEX_UMI \
+            --TAGGING_POLICY OpticalOnly 2> {log}
+        """
+
+rule UDSEQ_MERGE:
+    ## Merge multi-run samples into single bams
+    ## Currently merges ALL bam runs from a sample into a single bam. If we want subsets, will need to add that functionality later
+    input:
+        aggregate_udseq_runs
+    output:
+        merge = temp(SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.bam")
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.bam.log"
+    singularity: f"/gpfs/data/petljaklab/containers/gatk/gatk_{MUTECT_VERSION}.sif"
+    threads: 2
+    resources:
+        threads = 2,
+        cpus = 2,
+        runtime = 480,
+        iotasks = 4,
+        slurm_partition = "petljaklab,cpu_short,fn_short,cpu_dev"
+    params:
+        inputlist = lambda wildcards, input: f"-I {input}" if isinstance(input, str) else "-I " + " -I ".join(input)
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.benchmark"
+    priority: 1004
+    shell:
+        """
+        gatk MergeSamFiles \
+            {params.inputlist} -O {output.merge} \
+            --USE_THREADING true \
+             &>> {log}
+        """
+
+rule UDSEQ_BAM2CRAM:
+    input:
+        merge = rules.UDSEQ_MERGE.output,
+        bwa_idxbase = lambda wildcards: ALN_REFERENCES[wildcards.reference],
+    output:
+        cram = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.cram",
+        crai = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.cram.crai",
+        ref_md5 = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.ref.md5",
+        readme = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/CRAM_README.txt",
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.cram.log"
+    singularity: f"/gpfs/data/petljaklab/containers/samtools/samtools_{SAMTOOLS_VERSION}.sif"
+    threads: 1
+    resources:
+        runtime = 480,
+        slurm_partition = "petljaklab,cpu_short",
+        mem_mb = 4000,
+    benchmark: SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.cram.bench"
+    priority: 1005
+    shell:
+        """
+        md5sum {input.bwa_idxbase} > {output.ref_md5};
+        echo    'This CRAM was generated using the fasta file located at {input.bwa_idxbase}. The md5 hash of the reference is at {output.ref_md5}. \
+                The matching reference fasta at the specified directory is REQUIRED for proper decompression of the file' > {output.readme};
+        samtools view -@ {threads} -C -T {input.bwa_idxbase} {input.merge} > {output.cram} 2> {log}
+        samtools index {output.cram} &>> {log}
+        chmod 750 {output};
+        """
+
+rule UDSEQ_CALL:
+    input:
+        cram = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/merged.cram",
+        BWA_IDXBASE = "/gpfs/data/petljaklab/resources/{reference}/pipeline_resources/genome/udseq/{reference}.fa",
+    output:
+        variants = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/calls/calls.vcf"
+    conda: f"{UDSEQ_BASE_PATH}/environment.yaml"
+    params:
+        out_prefix = lambda wildcards: SCRATCH_DIR + f"studies/{wildcards.study}/samples/{wildcards.sample}/analyses/UDSEQ_BAM/{wildcards.analysis}/merge/{wildcards.reference}/calls/calls",
+        gnomad = lambda wildcards: f"/gpfs/data/petljaklab/resources/{wildcards.reference}/pipeline_resources/udseq/af-only-gnomad.4.0.0.hg38.vcf.gz",
+        noise = lambda wildcards:  f"/gpfs/data/petljaklab/resources/{wildcards.reference}/pipeline_resources/udseq/NOISE.hg38.sorted.withchr.bed.gz",
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/UDSEQ_BAM/{analysis}/merge/{reference}/calls/calls.log"
+    resources:
+        runtime = 480,
+        slurm_partition = "petljaklab,cpu_short",
+        mem_mb = 4000,
+    threads: 1
+    shell:
+        """
+        DupCaller.py call -b {input.cram} -f {input.BWA_IDXBASE} -o {params.out_prefix} -p {threads} -g {params.gnomad} -m {params.noise} -maf 0.3 2> {log}
+        """
