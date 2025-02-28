@@ -68,7 +68,6 @@ Alignment:
 - GATK WGS best practices CRAM (`GATK_BAM`)
 - Single molecule sequencing and variant calling (`UDSEQ`)
 
-
 SNV calling:
 
 - Parent-daughter cell line (`MUTECT_CELLLINE`)
@@ -203,7 +202,7 @@ Some modules cannot run automatically in a pipeline because intermediate steps n
 
 There is a function `get_external_bam_path` that accomplishes a mapping from a sample ID to the path to the bams, which is the bit that's specific to study 3. It is found in `modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk`. 
 
-Once it's adatped to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
+Once it's adapted to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
 
 ## Developer documentation (how to add modules/endpoints to the pipelines)
 
