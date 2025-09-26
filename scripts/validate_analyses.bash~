@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH -p petljaklab
+#SBATCH -c 1
+#SBATCH --time=00:10:00
+#SBATCH --mem=1G
+#SBATCH -e /dev/null
+#SBATCH -o /dev/null
+python /gpfs/data/petljaklab/lculibrk_prj/pipeljak/validate_files.py -i /gpfs/data/petljaklab/data/studies/timestamps.txt  > /gpfs/data/petljaklab/data/studies/timestamps_temp.txt 2> /gpfs/data/petljaklab/data/studies/timestamps_log.txt  && mv -f /gpfs/data/petljaklab/data/studies/timestamps_temp.txt /gpfs/data/petljaklab/data/studies/timestamps.txt
+
+
+if [ -s /gpfs/data/petljaklab/data/studies/timestamps_log.txt ]; then
+    mail -s "Production files changed!" luka.culibrk@nyulangone.org < /gpfs/data/petljaklab/data/studies/timestamps_log.txt
+    mail -s "Production files changed!" okafoa01@nyulangone.org < /gpfs/data/petljaklab/data/studies/timestamps_log.txt
+fi
+
+sbatch --begin 00:00 /gpfs/data/petljaklab/lculibrk_prj/pipeljak/scripts/validate_analyses.bash

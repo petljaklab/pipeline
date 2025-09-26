@@ -1,8 +1,10 @@
 import re
 
+INDEL_PATH = os.path.join(basedir, "modules", "INDEL")
+
 def mutect_std_calls(wildcards):
     ## Run the gateway function to ensure the mutect run has a path
-    final_mutect_path = gateway("MUTECT", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb", ref = wildcards.reference)
+    final_mutect_path = gateway("SBS", wildcards.sample, scratch_dir = SCRATCH_DIR, prod_dir = PROD_DIR, db = "petljakdb", ref = wildcards.reference)
     ## Get the analysis ID
     mutect_path = os.path.join(re.sub(r"(.*/MPA[0-9]*/mutect2/[^/]*/).*", "\\1", final_mutect_path[0]), "std/filtered.vcf")
     if isinstance(mutect_path, list):
@@ -232,3 +234,27 @@ rule ID_PARENT_DAUGHTER_TABLES:
             #    with open(output.parental, "a") as f:
             #        f.write("%s\n" % '\t'.join([files[0], sample[1], cell_name, sample[4]]))
 
+rule INDEL_CELLLINE_IMPORT_DB_TABLE:
+    input:
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/{tool}/indels.vcf",
+    output:
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/INDEL/{analysis}/{reference}/{tool}/indels.vcf.dbtmp",
+    resources:
+        runtime = 10,
+        threads = 1,
+        mem_mb = 5000,
+        slurm_partition = config["clusters"][config["parts"]]["short"]
+    priority: 1009
+    params:
+        script_path = INDEL_PATH + "/scripts/load_mutations_table.py",
+        db = db,
+    shell:
+        """
+        python {params.script_path} -d {params.db} \
+                                    -g {wildcards.reference} \
+                                    -a {wildcards.analysis} \
+                                    -s {wildcards.sample} \
+                                    -u {wildcards.study} \
+                                    -t ID \
+                                    -v {input.vcf}
+        """

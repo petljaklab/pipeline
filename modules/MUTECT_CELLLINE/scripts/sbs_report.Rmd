@@ -4,9 +4,12 @@ author: "Luka Culibrk"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
     pdf_document:
+        toc: true
+        toc_depth: 3
         keep_md: true
 params:
   args: ''
+urlcolor: blue
 ---
 
 \pagebreak
@@ -26,12 +29,16 @@ The below document justifies this post-hoc filtering.
 \pagebreak
 
 ```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, 
+                      message = FALSE, cache.lazy = FALSE)
 library(data.table)
 library(ggplot2)
 library(cowplot)
 library(viridis)
 library(stringr)
 library(ggridges)
+library(BSgenome.Hsapiens.UCSC.hg19)
 set.seed(42069)
 
 
@@ -40,7 +47,6 @@ conversion_table = c("NCI-H1650" = "H1650",
 										 "NCI-H2347" = "H2347", 
 										 "PC-14"			 = "PC9")
 
-require(BSgenome.Hsapiens.UCSC.hg19)
 plot_variants = function(dat){
 	complement = c("A" = "T", "C" = "G", "T" = "A", "G" = "C")
 	mutated_base = c("C", "T")
@@ -111,13 +117,6 @@ tbl_parent = fread("/gpfs/data/petljaklab/data/studies/MPP000003/analyses/MUTECT
 ```
 
 ```{r echo = FALSE}
-print(params$args)
-args = params$args
-print(args["daughter"])
-knitr::knit_exit()
-```
-
-```{r}
 args = params$args
 tbl = fread(args["daughter"], header = F)
 names(tbl) = c("std_path", "germ_path", "name", "line", "cell", "treatment", "culture_time")
@@ -130,11 +129,18 @@ tbl_parent[,analysis_path:=dirname(dirname(std_path))]
 
 ## Cell line/parent of origin quality control
 
-There are 93 SNP sites that allow discrimination between all COSMIC/CCLE cell lines. The variants and their genotypes in the 1k cell lines can be found at `/gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/reference_genotypes.txt`. We check for variants matching these reference sites using Bcftools. Similarity is calculated using a simple scoring system of 0.5 points per haplotype of difference. For example, if a variant is genotyped as A/A in the sample but is G/G in the reference, both haplotypes are different and the two samples have a distance of 1. For a given sample, the most likely cell line is determined by the reference line with the smallest total distance to the sample. 
+There are 93 genome-wide SNP sites that allow discrimination between all COSMIC/CCLE cell lines. The variants and their genotypes in the ~1k cell lines can be found at:
 
-Next we match parents with daughters. For each parent, we compute a set of variants unique to that parent to serve as a "fingerprint". Then, for each daughter, we compute the proportion of those fingerprint mutations which have any support in that daughter. For a correct parent:daughter pair, we typically but not always observe 80% or more of the parental fingerprint mutations found in the daughter. Correct pairings can be clearly determined from visual inspection of the resulting heatmaps.
+```
+/gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/\
+1k_cells_genotyping/reference_genotypes.txt
+```
 
-For each cell line analyzed, below will be a printout of all unique top matches across all samples for each cell line in the study. If the cell lines match their expected lines, then the printout should simply state that all the top hits for cell line X is X. However if one sample is mismatched, it would print out cell line X and the mismatched cell line as well. Essentially, this is a quick check for whether the annotations match the data. 
+We check for variants matching these reference sites using Bcftools (ver. 1.20). Similarity is calculated using a simple scoring system of 0.5 points per haplotype of difference. For example, if a variant is genotyped as A/A in the sample but is G/G in the reference, both haplotypes are different and the two samples have a distance of 1. For a given sample, the most likely cell line is determined by the reference line with the smallest total distance to the sample. Normally we observe a very clear closest match with a mutational distance under 10 and all other lines matching with distances multiple times higher. A line with no matches in the cell line references would have no specific and distinct closest match.  
+
+Next we match parents with daughters. For each parent, we compute a set of variants unique to that parent to serve as a "fingerprint". Then, for each daughter, we compute the proportion of those fingerprint mutations which have any reads supporting that mutation in that daughter. For a correct parent:daughter pair, we typically but not always observe 80% or more of the parental fingerprint mutations found in the daughter. Correct pairings can be clearly determined from visual inspection of the resulting heatmaps.
+
+For each cell line analyzed, below will be a printout of all unique top matches across all clones for each cell line in the study. If the clones match their expected lines, then the printout should simply state that all the top hits for the particular cell line is that very same cell line - ie. for all clones annotated as H1650, the reference lines that matched those clones were all H1650. However if one sample is mismatched - for example one clone is actually HeLa, it would print out cell line X and the mismatched cell line as well (H160 and HeLa). Essentially, this is a quick check for whether the annotations match the data. 
 
 On the next pages are two sets of heatmaps. First will be the heatmaps corresponding to the cell line QC described above. Each column is an individual sample (parent or daughter), and rows are reference cell lines. The heatmap is colored based on the mutational distance, calculated as described above. If all cell lines match well to a single reference, the match will be visible as a horizontal yellow line. 
 
@@ -205,27 +211,29 @@ for(i in cell_lines){
 
 As previously mentioned, we apply the following flags to mutations using information derived from both related and unrelated parent and daughter cells. "Filtered" indicates that the mutation is deemed to be not relevant to the experiment, due to being either germline, pre-existing somatic, or an artifact. We label each mutation according to these five categories for deeper investigation if desired:
 
-	i.   If the mutation has <15x coverage in parent, it is filtered and labeled accordingly
-	ii.  If the mutation is present in >50% of all parents from that cell line, it is filtered
-	and labeled accordingly.
-	iii. If the mutation is present in any daughter derived from a different parent, it is filtered 
-	and labeled accordingly.
-	iv.  If the mutation is present in other related daughters, it is **not** filtered, 
-	but labeled
-	v.   Mutations private to the daughter are **not** filtered and labeled as unique. 
-
+	i.   If the mutation has <15x coverage in parent, it is filtered in the VCF and labeled 
+	accordingly in the barplot
+	ii.  If the mutation is present in >50% of all parents from that cell line, it is
+	filtered in the VCF and labeled accordingly in the barplot.
+	iii. If the mutation is present in any daughter derived from a different parent,
+	it is	filtered in the VCF and labeled accordingly in the barplot.
+	iv.  If the mutation is present in other related daughters, it is **not**
+	filtered (PASS in the VCF), but labeled in the VCF's LAB field and the barplot
+	v.   Mutations private to the daughter are **not** filtered (PASS in the VCF), and 
+	labeled as unique in the VCF's LAB field and the barplot. 
+	
 ### Low coverage in parent
 
 In order to properly assess if a mutation is pre-existing, we require evidence that it is not present in the parental sample. 15x coverage is a common cutoff for this value, meaning that if a position has less than 15x coverage we do not have enough data to confidently assess a mutation's pre-existing or de novo status. 
 
 ### Present in >50% of parents
-Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in another parent from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The 96-channel mutation profiles (see COSMIC mutation signatures for more information) share large similarity to SBS1 and SBS5-like patterns, consistent with germline and pre-existing somatic mutations acquired during the donor's life.
+Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in >50% of other parents from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The 96-channel mutation profiles (see COSMIC mutation signatures for more information) share large similarity to SBS1 and SBS5-like patterns, consistent with germline and pre-existing somatic mutations acquired during the donor's life.
 
 ### Present in daughter from different parents
 This category is similar to the previous category. If we observe a mutation in multiple daughters derived from different parents, two possibilities exist. The first possibility is that these are bona fide de novo mutations that arose independently in multiple biological samples, and the second is that these mutations arise from systematic errors as artifacts. Probabilistically, the first should be extremely rare - mutation burdens are on the order of thousands, and genome sizes are on the order of billions of bases, so intersections should be very rare. It is consequently far more likely, then, that these mutations are artifacts. This is corroborated by manual inspection of variants in IGV, which reveals that these mutations typically occur in repetitive DNA elements and the reads supporting those mutations typically map very well to many regions of the genome. We show mapping quality evidence for this mutation category, finding that the MAPQ (MAPping Quality) of these variant reads are considerably lower than the MAPQ of unique mutations. This lowered MAPQ is because of multimapping reads in repeat elements. 
 
 ### Present in multiple daughters from the same parent
-This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - with a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first 4-5 cell divisions, it is very unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. These mutations are true de novo mutation acquired in the experiment, and consequently they are retained in the final variant callset. 
+This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - for example in a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first few cell divisions, it is increasingly unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. Because these mutations pass all other filtering, these mutations are true de novo mutations acquired in the experiment, and consequently they are retained in the final variant callset. We track these mutations in the case additional handling is desired - for example, four daughters harboring one such mutation would imply four independent mutation events while in reality this represents a single mutation that was propagated to four clones. 
 
 ### Unique mutations
 These mutations passed all of the above filters. They are high quality, private to each daughter, and were not found in any parents. They represent the mutations which we are most confident in. 
@@ -236,11 +244,11 @@ The following pages plot first a summary of mutation counts across the above cat
 
 \newpage
 
-```{r mutation_filtering_summary, fig.width=8, fig.height=11, echo = FALSE, cache = TRUE}
+```{r mutation_filtering_summary, fig.width=8, fig.height=11, echo = FALSE, cache = T}
 variant_data = lapply(1:nrow(tbl), function(x){
 		path = tbl$analysis_path[x]
 		dat_path = paste0(path, "/proc/variants_final.txt")
-		tab = fread(cmd = paste("grep -v", "mutect_filtered", dat_path))[tumor.LAB != "mutect_filtered"]
+		tab = fread(cmd = paste("grep -v", "mutect_filtered", dat_path), dec = ".")[tumor.LAB != "mutect_filtered"]
 		tab$name = tbl$name[x]
 		return(tab)
 })
@@ -271,7 +279,7 @@ if(F){
 parent_variants = lapply(1:nrow(tbl_parent), function(x){
 		path = tbl_parent$analysis_path[x]
 		dat_path = paste0(path, "/parental/table_raw.txt")
-		tab = fread(dat_path)
+		tab = fread(dat_path, dec = ".")
 		tab$name = tbl_parent$name[x]
 		tab$line = tbl_parent$cell[x]
 		return(tab)
@@ -324,7 +332,7 @@ for(i in cell_lines){
 
 ### Sharedness of parental mutations
 
-We now show the spectrum of how shared parental mutations are. There is typically a large spike in mutation numbers at the maximum. 
+We now show the spectrum of how shared parental mutations are. After removing germline mutations detected by Mutect2, we plot the distribution of the number of parents sharing each of their mutations. Each bar represents the number of mutations (y-axis) shared in that many parents (x-axis). The far left bar (1 parent) represents private parental mutations, whereas the far right bar represents mutations found in all parents. Spikes in the distribution (bars with many mutations in between 1 and the maximum) represent groups of parents that are relatively more related to one another - for example, if a group of knockouts were derived from one parental clone. 
 
 ```{r parental_mutation_filter, fig.width = 8, fig.height = 10, echo = FALSE, cache = TRUE}
 sublist = list()
@@ -335,7 +343,6 @@ for(i in cell_lines){
 plot_grid(plotlist = sublist, ncol = 1)
 ```
 
-
 \newpage
 
 ### Category "Mutation present in other non-lineage daughters"
@@ -343,10 +350,10 @@ plot_grid(plotlist = sublist, ncol = 1)
 We expect to observe a dip in mapping quality and VAFs for the mutations in this category compared to others. This implies these mutations are mainly the result of low frequency mapping errors to low complexity DNA. 
 
 ```{r non_lineage_daughters, fig.width=8, fig.height=10, echo = FALSE, cache = FALSE}
-variant_data[,mmq2:=tstrsplit(MMQ, ".")[2]]
+variant_data[,mmq2:=tstrsplit(MMQ, split = ",")[2]]
 variant_data[,mmq2:=as.numeric(mmq2)]
-variant_data[,RC:=tstrsplit(tumor.AD, ".")[1]]
-variant_data[,AC:=tstrsplit(tumor.AD, ".")[2]]
+variant_data[,RC:=tstrsplit(tumor.AD, ",")[1]]
+variant_data[,AC:=tstrsplit(tumor.AD, ",")[2]]
 variant_data[,VAF:=as.numeric(AC)/sum(as.numeric(RC), as.numeric(AC))]
 
 p1 = ggplot(variant_data[name %in% tbl[cell == i]$name], aes(x = tumor.LAB, y = VAF, fill = tumor.LAB)) + geom_boxplot() + scale_x_discrete(labels = long_label_wrap) + theme(legend.position = "none") + xlab("Mutation classification")
@@ -356,6 +363,7 @@ p2 = invisible(ggplot(variant_data[name %in% tbl[cell == i]$name], aes(x = mmq2,
 options(warn = -1)
 p = suppressMessages(plot_grid(p1, p2, ncol = 1))
 print(p)
+
 ```
 
 ## Mutation profiles of all daughter clones

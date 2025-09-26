@@ -4,7 +4,10 @@ import petljakapi.select
 import petljakapi.inserts
 import petljakapi.translate
 from modules.db_deps import db_deps, module_inputs, module_outputs
-def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", bench = False, ref = "hg19") -> list:
+#def get_seq_strategies(sample_id, db = "petljakdb") -> dict:
+    
+
+def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", bench = False, ref = "hg19", dryrun = False, quiet = False) -> list:
     """
     Creates a database entry for the requested analysis and returns the directory that will be used for that entry. 
 
@@ -36,13 +39,16 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
     ## Maybe to be replaced with a function for better readability
     if analysis_name == "SOMATIC":
         outlist = []
-        for pipe in ["MUTECT", "INDEL"]:
+        for pipe in ["SBS", "INDEL"]:
             outlist.extend(gateway(analysis_name=pipe, given_id=given_id, scratch_dir=scratch_dir, prod_dir=prod_dir, db=db, ref=ref))
         return(outlist)
     ## Handle fastq inputs
     if analysis_name == "FASTQ":
         ## Get the entry of the "run" table corresponding to the given ID
-        entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
+        if terminal_dep:
+            entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
+        else:
+            entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict), bench = bench)
         ## index 4 is the "source" column
         source = entry[0][4]
         table_id = entry[0][0]
@@ -101,7 +107,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
             INPIPE = "GATK_BAM"
             table_id = entry[0][0]
             end_path = [f"merge/{ref}/merged.cram", f"merge/{ref}/merged.cram.crai", f"merge/{ref}/merged.done"]
-    elif analysis_name == "MUTECT":
+    elif analysis_name == "SBS":
         ## Select the entry of the relevant sample table
         entry = petljakapi.select.simple_select(db = db, table = terminal_dep, filter_column = "id", filter_value = petljakapi.translate.stringtoid(id_dict[terminal_dep]), bench = bench)
         table_id = entry[0][0]
@@ -119,7 +125,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
             #print(entry)
             #print(parent_id)
             if parent_id is not None and parent_id != "NULL":
-                end_path.extend([f"mutect2/{ref}/proc/variants_final.vcf"])
+                end_path.extend([f"mutect2/{ref}/proc/variants_final.done"])
             if len(daughters) > 0: ## ie. if this is a parent
                 end_path.extend([f"mutect2/{ref}/parental/table_raw.txt"])
         else:
@@ -128,7 +134,8 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
             germline = petljakapi.select.multi_select(db, "patients", {"id":pat_id})[0]
             germline = germline[2]
             if germline == table_id:
-                print(f"Calling germline variants is not yet supported. Skipping sample {id_dict[terminal_dep]}")
+                if not quiet:
+                    print(f"Calling germline variants is not yet supported. Skipping sample {id_dict[terminal_dep]}")
                 return()
             end_path = [f"mutect2/{ref}/biop/filtered.vcf"]
             if not germline:
@@ -142,10 +149,13 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         parent_id = entry[0][5]
         analysis_ref=ref
         if parent_id is None:
-            print(f"Calling indels without matched normal is not supported. Skipping sample {id_dict[terminal_dep]}")
+            if not quiet:
+                print(f"Calling indels without matched normal is not supported. Skipping sample {id_dict[terminal_dep]}")
             return()
         callers = ["mutect2", "strelka2", "varscan2"]
+        callers = ["mutect2"]
         end_path = [f"{ref}/{caller}/indels.txt" for caller in callers]
+        end_path.extend([f"{ref}/{caller}/indels.vcf.dbtmp" for caller in callers])
         path_prefix = prod_dir
         INPIPE = "INDEL"
     elif analysis_name == "LOAD_EXTERNAL_BAM":
@@ -196,7 +206,7 @@ def gateway(analysis_name, given_id, scratch_dir, prod_dir, db = "petljakdb", be
         'reference_genome':analysis_ref
     })
     ## Insert/get the relevant ID
-    analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses", db = db)[0][0]
+    analysis_id = petljakapi.inserts.analysis_insert(analysis_entry, "analyses", db = db, dryrun = dryrun)[0][0]
     ## Construct final IDs
     out_paths = [path + petljakapi.translate.idtostring(analysis_id, "MPA") + "/" + p for p in end_path]
     return(out_paths)

@@ -82,3 +82,19 @@ rule MUTECT2_BIOP_NONORM:
                 --f1r2-tar-gz {output.tgz} \
                 --output {output.vcf} &>> {log}.{resources.att}
         """
+
+rule MUTECT2_BIOP_DONE:
+    input:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_BIOP/{analysis}/mutect2/{reference}/biop/filtered.vcf"
+    output:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_BIOP/{analysis}/mutect2/{reference}/biop/filtered.done"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_BIOP/{analysis}/mutect2/{reference}/biop/filtered.done.log"
+    params:
+        db = config["db"]
+    resources:
+        runtime = 10,
+        slurm_partition = config["clusters"][config["parts"]]["short"],
+    priority: 1007
+    shell:
+        "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input} >> {log}; touch {output}"

@@ -14,7 +14,7 @@ db_deps = {
         "studies",
         "samples"
     ],
-    "MUTECT": [
+    "SBS": [
         "studies",
         "samples"
     ],
@@ -56,11 +56,11 @@ module_outputs = {
     "GATK_BAM_CONVERT":"FASTQ",
     "GATK_BAM":"WGS_MERGE_BAM",
     "UDSEQ_BAM":"WGS_MERGE_BAM",
-    "MUTECT_CELLLINE":"MUTECT",
+    "MUTECT_CELLLINE":"SBS",
     "LOAD_EXTERNAL_BAM":"LOAD_EXTERNAL_BAM",
     "EXTERNAL_BAM":"EXTERNAL_BAM",
     "INDEL":"INDEL",
-    "MUTECT_BIOP":"MUTECT",
+    "MUTECT_BIOP":"SBS",
     "SV":"SV",
 }
 

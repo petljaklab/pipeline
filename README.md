@@ -1,4 +1,45 @@
-# petljaklab bioinformatics pipelines
+---
+title: "Peltjak Lab Bioinformatics Pipelines"
+author: "Luka Culibrk"
+---
+<!-- ## Table of Contents
+1. [Petljak Lab Bioinformatics Pipelines](#peltjak-lab-bioinformatics-pipelines)
+   1. [Table of Contents](#table-of-contents)
+   2. [Introduction ](#introduction-)
+   3. [Quick Execute ](#quick-execute-)
+   4. [Overview and key definitions {#keydefs}](#overview-and-key-definitions-keydefs)
+   5. [Execution ](#execution-)
+   6. [List of current endpoints:](#list-of-current-endpoints)
+   7. [List of current modules:](#list-of-current-modules)
+   8. [Module documentation](#module-documentation)
+      1. [FASTQ endpoint](#fastq-endpoint)
+         1. [1. EGA](#1-ega)
+         2. [2. SRA](#2-sra)
+         3. [3. EXTERNAL\_BAM](#3-external_bam)
+         4. [4. local fastq](#4-local-fastq)
+      2. [WGS\_MERGE\_BAM endpoint](#wgs_merge_bam-endpoint)
+         1. [1. GATK\_BAM](#1-gatk_bam)
+         2. [2. UDSEQ](#2-udseq)
+      3. [SNV endpoint](#snv-endpoint)
+         1. [1. MUTECT\_CELLLINE](#1-mutect_cellline)
+         2. [2. MUTECT\_BIOP](#2-mutect_biop)
+      4. [INDEL endpoint](#indel-endpoint)
+         1. [1. INDEL](#1-indel)
+      5. [SOMATIC endpoint](#somatic-endpoint)
+   9. [Module-specific instructions](#module-specific-instructions)
+      1. [EXTERNAL\_BAM](#external_bam)
+   10. [Developer documentation (how to add modules/endpoints to the pipelines)](#developer-documentation-how-to-add-modulesendpoints-to-the-pipelines)
+       1. [How the pipelines work](#how-the-pipelines-work)
+       2. [To add a new pipeline:](#to-add-a-new-pipeline)
+   11. [Step by step instructions](#step-by-step-instructions)
+       1. [1. Load metadata](#1-load-metadata)
+       2. [2. Dumping the IDs from the database](#2-dumping-the-ids-from-the-database)
+       3. [3. Executing the pipeline](#3-executing-the-pipeline)
+   12. [Supplementary information](#supplementary-information)
+       1. [Cell line study basics](#cell-line-study-basics)
+-->
+
+# Introduction <a name="introduction"></a>
 
 Bioinformatics workflows for the [Petljak Lab](https://petljaklab.com/) at the Perlmutter Cancer Center, written by [Luka Culibrk](https://github.com/lculibrk)
 
@@ -12,7 +53,7 @@ singularity run -B /gpfs/ /gpfs/data/petljaklab/containers/pandoc/latex_2.6.sif 
    -H disable_float.tex
 ```
 
-## Quick Execute
+# Quick Execute <a name="quickexecute"></a>
 
 ```python ./executor.py [--idfile ID_FILE | --id SAMPLE_ID] --pipeline ENDPOINT [snakemake options]```
 
@@ -21,31 +62,29 @@ singularity run -B /gpfs/ /gpfs/data/petljaklab/containers/pandoc/latex_2.6.sif 
 - pipeline is the desired endpoint, such as `FASTQ`. See below for a comprehensive list
 - snakemake options are passed to the workflow manager, [Snakemake. (click me for more information)](https://snakemake.readthedocs.io/en/stable/)
 
-## Overview and key definitions
+# Overview and key definitions {#keydefs}
 
 The petljaklab pipelines are a collection of modules to simplify the process of performing genomics-related tasks such as variant calling or WGS alignment. Figure 1 illustrates conceptually how the pipelines work. 
 
 Two key definitions to keep in mind:
 
 - **endpoints** describe the final product of a pipeline. For example the endpoint `WGS_MERGE_BAM` is a mapped WGS alignment file for a biological sample. An endpoint is considered satisfied when their output is generated, e.g. `WGS_MERGE_BAM` is satisfied for a sample when its `.cram` is generated. 
-- **workflows** or equivalently **modules** are methods for satisfying an endpoint. 
+- **modules** are methods (scripts and programs) for creating the endpoint. 
 
 ![Sample pipeline layout from FASTQ to SBS VCF](figs/Fig1.png)
 
-Figure 1A illustrates how endpoints become satisfied. To satisfy the requirement for a variant file, first an alignment file is needed, which in turn needs a raw fastq. Each of these steps represents an endpoint. 
+Figure 1A illustrates how pipelines are organized and run. To create a variant file, first an alignment file is needed, which in turn needs a raw fastq. Multiple methods can produce each type of file, and the pipelines are orgnized in a way such that if a downstream method can use the output of two different modules that produce the same conceptual *thing*, it can. 
 
-Multiple methods can produce the same type of file, as illustrated in Figure 1B. For example, fastq can be provided by either the Sequence Read Archive (SRA), the European Genome-Phenome Archive (EGA), or extracted from existing alignment files (external_bam). In any case, the resulting file is still a fastq. Any fastq produced can then be used for mapping into an alignment file - either through a UDseq-specific pipeline or a generic pipeline using the Genome Analysis ToolKit (GATK). The same applies to variant calling - separate pipelines exist for variant calling in cell line or biopsy sequencing contexts, but they both produce variant call files. 
+Multiple methods can produce the same type of file, as illustrated in Figure 1B. For example, fastq can be provided by either the Sequence Read Archive (SRA), the European Genome-Phenome Archive (EGA), or extracted from existing alignment files (external_bam). In any case, the resulting file is still a fastq. Any genomic fastq produced can then be used for mapping into an alignment file - either through a Duplex-specific pipeline (UDSEQ) or a generic pipeline (GATK_BAM) using the Genome Analysis ToolKit (GATK). The same applies to variant calling - separate pipelines exist for variant calling in cell line or biopsy sequencing contexts, but they both produce somatic variant call files that can be used in the same way. 
 
-The pipelines are written in a way to enable a user to specify the end product that they want to make - ie. a variant call file, without needing to explicitly outline the specific methods of how each step is done. 
+The pipelines are written in a way to enable a user to specify the end product that they want to make - ie. a variant call file, without needing to explicitly outline the specific methods of how each step is done. In other words, the user doesn't need to know that the raw data comes from the EGA instead of the SRA, because the database and pipelines are able to figure that out automatically. 
 
-## Execution
+# Execution <a name="execution"></a>
 
-The executor function, `executor.py` is given a sample (or list of samples) alongside an endpoint. The logic of which pipelines are used to satisfy the endpoints are automatically determined. 
-Refer to the database/API repo for information on how the data are stored there.
+The primary way for a user to provide instructions for the pipeline to execute is by using the executor program, `executor.py`. This program mainly takes two arguments - the endpoint to be executed, and the samples that the endpoint is to be run on. Instructions on running `executor.py` are 
+ 
 
-Once a module is executed, a matching entry in the database is created in the `analyses` table, which tracks pertinent information such as the directory where the analysis results can be found, as well as the time the analysis was run. 
-
-## List of current endpoints:
+# List of current endpoints:
 
 - FASTQ generation (`FASTQ`)
 - Alignment (`WGS_MERGE_BAM`)
@@ -55,7 +94,7 @@ Once a module is executed, a matching entry in the database is created in the `a
 
 Each endpoint has at least one module that can generate that endpoint. 
 
-## List of current modules:
+# List of current modules:
 
 FASTQ:
 
@@ -78,11 +117,11 @@ Indel calling:
 
 The `SOMATIC` endpoint forces both SNV and Indel endpoints to be executed.
 
-## Module documentation
+# Module documentation
 
 Before running an analysis, the metadata must be loaded into the `petljakdb`. One biological sample corresponds to one entry in the `samples` table. Each sample can have one or many runs, each of which must be entered into the `runs` table. Refer to the `petljakdb` documentation for the definition of the columns for each table. The below sections discuss each endpoint, as well as the information that must be present in the `petljakdb` in order to run the pipelines for that endpoint. 
 
-### FASTQ endpoint
+## FASTQ endpoint
 
 ![Decision tree for the FASTQ endpoint](figs/Fastq_endpoint-1.png)
 
@@ -90,25 +129,25 @@ The above figure describes the decision tree for deciding which module to use fo
 
 This endpoint generates a FASTQ file to be used as input for downstream analyses/modules. Below is a description of the modules that satisfy the FASTQ endpoint and their particular instructions. 
 
-#### 1. EGA
+### 1. EGA
 
 The data are stored on the EGA. The data are pulled from the EGA using the pyEGA program. 
 
 In addition to the `source` column as mentioned above, the EGA ID must be present in the `biosample_id` column of the `samples` table. 
 
-#### 2. SRA
+### 2. SRA
 
 The data are stored on the SRA. The data are pulled from the SRA using the SRA toolkit. 
 
 In addition to the `source` column as mentioned above, the SRA ID must be present in the `biosample_id` column of the `samples` table. 
 
-#### 3. EXTERNAL_BAM
+### 3. EXTERNAL_BAM
 
 The data are found locally as BAM/CRAM files. The bam files are converted back to unmapped fastq using `samtools`.
 
 The `source` column must be set to `external_bam`, and there must be an appropriate amendment to `modules/EXTERNAL_BAM/PREP_EXTERNAL_BAM.smk` as described below and in the file itself. This is a temporary workaround. 
 
-#### 4. local fastq
+### 4. local fastq
 
 Local fastq is the simplest, as we do not need to run any code to generate it. The `fastq_path` column in the `runs` table must point to the **fastq prefix**. 
 
@@ -126,7 +165,7 @@ The prefix would be everything before the R#, so:
 
 This string is what must be stored in the `fastq_path` column. 
 
-### WGS_MERGE_BAM endpoint
+## WGS_MERGE_BAM endpoint
 
 ![Decision tree for the WGS_MERGE_BAM endpoint](figs/WGS_MERGE_BAM_endpoint.png)
 
@@ -134,25 +173,25 @@ The above figure describes the decision tree for deciding which module to use fo
 
 This endpoint generates a DNA-seq CRAM file to be used as input for downstream analyses/modules. Below is a description of the modules that satisfy the WGS_MERGE_BAM endpoint and their particular instructions. 
 
-#### 1. GATK_BAM
+### 1. GATK_BAM
 
 The bam is generated according to GATK best practices. Adapters are marked using GATK MarkAdapters, the reads are mapped using bwa-mem, duplicates are marked using GATK MarkDuplicatesSpark and the resulting alignment files are merged and converted to CRAM v3.1 format. 
 
 As mentioned above, the `strategy` column for the sample must be set to either `WGS` (whole genome sequencing) or `WXS` (whole exome sequencing). 
 
-#### 2. UDSEQ
+### 2. UDSEQ
 
 The bam is generated using the UDSeq pipeline. Reads are trimmed of barcodes using DupCallerTrim, mapped using bwa-mem, duplicates marked in a single-molecule aware manner using GATK MarkDuplicates and variants are called using DupCaller.
 
 As mentioned above, the `strategy` column for the sample must be set to `UDSEQ`. 
 
-### SNV endpoint
+## SNV endpoint
 
 ![Decision tree for the FASTQ endpoint](figs/MUTECT_endpoint.png)
 
 The above figure describes the decision tree for deciding which module to use for the MUTECT endpoint. The critical table/column is the `sample` table and `cell_id` and `patient_id` columns - one of the two must be set. If `cell_id` is set, the `MUTECT_CELLLINE` module is used. Otherwise if `patient_id` is set, the `MUTECT_BIOP` module is used. This module requires the `WGS_MERGE_BAM` endpoint to be satisfied, or satisfiable. 
 
-#### 1. MUTECT_CELLLINE
+### 1. MUTECT_CELLLINE
 
 
 
@@ -176,7 +215,7 @@ This is a multi-step variant calling workflow that involves the following steps:
 	
    v.   Mutations private to the daughter are **not** filtered and labeled as unique. 
 
-#### 2. MUTECT_BIOP
+### 2. MUTECT_BIOP
 
 This is a standard Mutect2 variant calling workflow of tumor using matched normal. The `normal_sample` of the `patient` table must be set to the sample ID of the matched normal. 
 
@@ -184,19 +223,19 @@ This is a standard Mutect2 variant calling workflow of tumor using matched norma
 
 The database setup is identical as in the `SNV` endpoint. Currently indel calling is only supported for cell line samples.
 
-#### 1. INDEL
+### 1. INDEL
 
 Indel calling and filtering is performed identically as in the MUTECT_CELLLINE module. 
 
-### SOMATIC endpoint
+## SOMATIC endpoint
 
 This is a convenience endpoint that combines both `SNV` and `INDEL` endpoints together - by specifying `SOMATIC`, both `SNV` and `INDEL` will be satisfied. 
 
-## Module-specific instructions
+# Module-specific instructions
 
 Some modules cannot run automatically in a pipeline because intermediate steps need to finish executing and be loaded into the database before future steps can be properly planned by the pipelines. The main example is the `EXTERNAL_BAM` module, which satisfies the `FASTQ` endpoint if alignment files exist locally. This is because the logic to determine how many runs exist in an alignment file is not fully integrated into the pipelines yet. Consequently the below section is a temporary workaround.  
 
-### EXTERNAL_BAM
+## EXTERNAL_BAM
 
  In order to process a preprocessed bam/cram into fastq for realignment/reprocessing to be consistent with the rest of our data, we need to first get run information out of the bams/crams. To do this, there's a module that runs separately from the rest of the pipeline, PREP_EXTERNAL_BAM. Currently it is configured to only work on studyID 3. Before you can run any of the other pipelines from an external bam set, first you need to run PREP_EXTERNAL_BAM on the files to load the runs data into the database. Once it completes, you may then execute other modules, e.g. `SOMATIC`.
 
@@ -204,11 +243,11 @@ There is a function `get_external_bam_path` that accomplishes a mapping from a s
 
 Once it's adapted to your dataset, simply execute the pipeline on your samples as instructed above with  `--pipeline LOAD_EXTERNAL_BAM` and the pipeline should take care of loading. Then, the required runs data will be in the database for the pipeline to know, for e.g., how many run-specific bams to extract from each sample-specific bam. 
 
-## Developer documentation (how to add modules/endpoints to the pipelines)
+# Developer documentation (how to add modules/endpoints to the pipelines)
 
 This section is somewhat more technical and is intended for people relatively proficient in python and snakemake in order to understand and contribute to the pipelines. 
 
-### How the pipelines work
+## How the pipelines work
 
 ![Schematic of the parts of the pipelines and how they interact](figs/Fig2-3.png)
 
@@ -216,7 +255,7 @@ These pipelines are intended to be as simple to execute as possible. `gateway()`
 
 Overall, the `petljakdb` should store all the metadata required to handle how the pipelines are run. The pipeline framework should, therefore, utilize this information to reproducibly and consistently execute analyses on data entities in a generalizable fashion. 
 
-### To add a new pipeline:
+## To add a new pipeline:
 1. Create a new Snakefile module under `modules/`
 2. Modify `modules/db_deps.py` to include this new pipeline:
    
@@ -229,11 +268,11 @@ Overall, the `petljakdb` should store all the metadata required to handle how th
 3. Add it to `gateway()` in `lib/input_functions.py`. If it's a new endpoint, you'll need to add code to handle that endpoint. Otherwise, if it's a new module for an existing endpoint, you need to add the appropriate code to handle this module and decide when it should be executed (as opposed to another module to satisfy the endpoint). 
 
 
-## Step by step instructions
+# Step by step instructions
 
 Here you will find step-by-step instruction-by-example on loading data into the database and how to execute the SOMATIC pipeline. 
 
-### 1. Load metadata
+## 1. Load metadata
 
 This step is study-specific depending on how your metadata are structured. The easiest way to do this is to write a script that iterates over each sample/run and inserts a corresponding entry to the `petljakdb`. You can use the `petljakapi` [(click me)](https://github.com/petljaklab/petljakapi) for a programming interface to the database. Below is an example set of samples/runs and a generously commented python script that would add this to the `petljakdb`. Alternative functional solutions are welcome according to personal preference. 
 
@@ -304,7 +343,7 @@ for line in tab:
        "fastq_path":line[4]}, "runs", db)
 ```
 
-### 2. Dumping the IDs from the database
+## 2. Dumping the IDs from the database
 
 Once this is done, you can dump the sample IDs to a text file (ie. in bash):
 
@@ -313,7 +352,7 @@ mysql petljakdb -B --execute 'SELECT * from SAMPLES WHERE study_id=my_study_id' 
  awk '{print "MPS00"$0}' > my_ids.txt
 ```
 
-### 3. Executing the pipeline
+## 3. Executing the pipeline
 
 Finally, simply execute the pipeline on the IDs in my_ids.txt, specifying the SOMATIC endpoint:
 
@@ -323,11 +362,11 @@ python executor.py --idfile my_ids.txt --pipeline SOMATIC
 
 \newpage
 
-## Supplementary information
+# Supplementary information
 
 Below is a description of the logic behind some pipelines, intended to justify/clarify why some decisions were made.
 
-### Cell line study basics
+## Cell line study basics
 
 ![Parent-daughter cloning experiment example](figs/cell_line_expt.jpg)
 
@@ -342,3 +381,22 @@ We can leverage information from related samples to help identify pre-existing m
 ![Mutation aggregation summary](figs/mutation_filtering_summary-1.pdf)
 
 We use the same filtering criteria for indel mutations. 
+
+## Consensus calling of indels vs Mutect2 calls alone
+
+It is typical for indel calling to be approached using consensus calling methods - i.e. using agreement among three or more different indel callers. We attempted this, and found that using a consensus approach likely added many artifactural indels. 
+
+We performed indel calling (and the pipeline still supports) using Mutect2, Varscan2, and Strelka2, three fairly popular indel callers. We found that Varscan2 tends to output many, many more indels than either Mutect2 or Strelka2.
+
+![Venn diagram of multi-caller indel calling. Mutect2, Varscan2, and Strelka2 were used to call indels in lung cancer cell lines. Intersections of indel calls across different callers are shown as absolute counts and percentages of all indels.](figs/indel-venn.png)
+
+Above it is apparent that Mutect2 calls the fewest indels overall, followed by Strelka2 and Varscan2 respectively. 
+
+![Upset plot of indel calls across the three Indel callers](figs/indel-upset.png)
+
+Looking at the specific intersects more closely, it is also apparent that Strelka2 and Varscan2 tend to agree with each other and not Mutect2 fairly often. When Mutect2 calls an indel, it is usually supported by Varscan2 and Strelka2. However, Varscan2 and Strelka2 calls typically are either private to the caller, or are shared only between these two callers. Next we take a look at the indel profiles to see if anything is suspicious.
+
+![ID83 profiles of Mutect2 indel calls compared to Varscan2/Strelka2 calls](figs/indel-multicalling.png)
+
+It is apparent that Varscan2/Strelka2's indels that are not called by Mutect2 are very different indels than Mutect2's indels. They are overwhelmingly 1bp insertions in homopolymer regions. Upon closer investigation of Mutect2 outputs, it was found that these indels are identified by Mutect2, but these calls are subsequently filtered out by Mutect2's strand slippage filter. The GATK team certainly is very convinced that these are artifacts; some discussion on this note is [linked here](https://gatk.broadinstitute.org/hc/en-us/community/posts/26267780550299-Slippage-filter-and-multi-tool-indel-consensus-calling)
+

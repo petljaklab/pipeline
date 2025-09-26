@@ -179,6 +179,8 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
         runtime = 720,
     params:
         script_path = MUTECT_CELLLINE_PATH + "/scripts/filter_mutations.R"
+    singularity:
+        "/gpfs/data/petljaklab/containers/r_full/r_full_r_4.4.2-pkgs_1.0.2.sif"
     log:
         SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering.log"
     shell:
@@ -188,12 +190,12 @@ rule MUTECT2_CELLLINE_SBS_GROUP_FILTER:
         echo 'Rscript {params.script_path} -d {input.daughter} -p {input.parental} -t {resources.threads}' > {output}
         """
 
-rule PROC_FILE:
+rule M2_CELLLINE_PROC_FILE:
     input:
         filt = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering_done.txt",
         vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/std/filtered_renamed.vcf"
     output:
-        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.vcf"
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.vcf"
     threads: 1
     resources:
         mem_mb = 3000,
@@ -259,3 +261,66 @@ rule MUTECT2_CELLLINE_PAIRED_FILTER:
         "module load r/4.1.2; Rscript scripts/filter_paired.R --germline {input.germ} --input {input.std} --table {input.tbl} --parent {params.parent} --outtable {output.tab} 2> {log}"
 
 ## At the end of all this, the invocation of this module should be able to figure out if a sample is purely parental or not. If it's purely parental, then it shouldn't trigger the pipeline execution. 
+
+rule MUTECT_CELLLINE_REPORT:
+    input:
+        daughter = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/daughters_table.txt",
+        parental = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/parents_table.txt",
+        filtf = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/filtering_done.txt"
+    output:
+        report = SCRATCH_DIR + "studies/{study}/analyses/MUTECT_CELLLINE/{reference}/report.pdf"
+    resources:
+        runtime = 120,
+        threads = 1,
+        mem_mb = 64000,
+        slurm_partition = config["clusters"][config["parts"]]["fat"]
+    priority: 1008
+    singularity:
+        "/gpfs/data/petljaklab/containers/r_full/r_full"
+    params:
+        script_path = MUTECT_CELLLINE_PATH + "/scripts/knit_sbs.bash"
+    shell:
+        "bash {params.script_path} -d {input.daughter} -p {input.parental} -o {output.report}"
+
+
+rule MUTECT_CELLLINE_IMPORT_DB_TABLE:
+    input:
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.vcf"
+    output:
+        vcf = SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.vcf.dbtmp"
+    resources:
+        runtime = 10,
+        threads = 1,
+        mem_mb = 5000,
+        slurm_partition = config["clusters"][config["parts"]]["short"]
+    priority: 1009
+    params:
+        script_path = MUTECT_CELLLINE_PATH + "/scripts/load_mutations_table.py",
+        db = db,
+    shell:
+        """
+        python {params.script_path} -d {params.db} \
+                                    -g {wildcards.reference} \
+                                    -a {wildcards.analysis} \
+                                    -s {wildcards.sample} \
+                                    -t SBS \
+                                    -u {wildcards.study} \
+                                    -v {input.vcf}
+        """
+
+rule MUTECT_CELLLINE_DONE:
+    input:
+        vcf = rules.M2_CELLLINE_PROC_FILE.output.vcf,
+        dbfile = rules.MUTECT_CELLLINE_IMPORT_DB_TABLE.output.vcf
+    output:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.done"
+    log:
+        SCRATCH_DIR + "studies/{study}/samples/{sample}/analyses/MUTECT_CELLLINE/{analysis}/mutect2/{reference}/proc/variants_final.done.log"
+    params:
+        db = config["db"]
+    resources:
+        runtime = 10,
+        slurm_partition = config["clusters"][config["parts"]]["short"],
+    priority: 1007
+    shell:
+        "python scripts/mark_complete.py --id {wildcards.analysis} --db {params.db} {input.vcf} >> {log}; touch {output}"

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-module load r/4.1.2 pandoc/2.2.3.2 latex/2019
-
 help()
 {
     echo "knit_id.bash -d DAUGHTER_TABLE -p PARENTS_TABLE -o OUTPUT_PATH"
@@ -12,6 +10,7 @@ help()
     echo "  -o  output_path path where outputs will be written"
 }
 
+echo "1"
 
 if [ "$#" -ne 6 ]; then
     help
@@ -65,5 +64,5 @@ echo $output
 
 odir=$(dirname $output)
 
-echo "Rscript -e \"rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
-Rscript -e "rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"
+echo ".libPaths(c(.libPaths(), \"/gpfs/share/apps/R/4.2.2/lib64/R/library\")); Rscript -e \"rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
+Rscript -e ".libPaths(c(.libPaths(), \"/gpfs/share/apps/R/4.2.2/lib64/R/library\")); rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/INDEL/scripts/id_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"

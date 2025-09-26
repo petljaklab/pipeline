@@ -65,5 +65,5 @@ echo $output
 
 odir=$(dirname $output)
 
-echo "Rscript -e \"rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
-Rscript -e "rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"
+echo "Rscript -e \".libPaths(c(.libPaths(), "/gpfs/share/apps/R/4.2.2/lib64/R/library")); rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))\""
+Rscript -e ".libPaths(c(.libPaths(), \"/gpfs/share/apps/R/4.2.2/lib64/R/library\")); rmarkdown::render('/gpfs/data/petljaklab/lculibrk_prj/pipeljak/modules/MUTECT_CELLLINE/scripts/sbs_report.Rmd', output_file=\"$output\", knit_root_dir = \"$odir\", param=list(args=c(\"daughter\" = \"$daughter\", \"parent\" = \"$parent\")))"

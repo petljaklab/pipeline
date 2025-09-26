@@ -23,11 +23,10 @@ group = parser.add_mutually_exclusive_group(required=True)
 
 group.add_argument('--id', help = "String IDs", nargs = "+", action = "extend")
 group.add_argument('--idfile', help = "List of IDs")
-parser.add_argument("--pipeline", help = "Analysis requested")
-parser.add_argument("--cell_id", required=False)
-parser.add_argument("--api_benchmark", action=argparse.BooleanOptionalAction, default = False)
-parser.add_argument("--reference_genome", default = None, required=False)
-parser.add_argument('--partition', default = "default", required = False)
+parser.add_argument("--pipeline", help = "Analysis requested, such as SBS, INDEL, or WGS_MERGE_BAM")
+parser.add_argument("--api_benchmark", action=argparse.BooleanOptionalAction, default = False, help = "Debugging preset to benchmark API call performance.")
+parser.add_argument("--reference_genome", default = None, required=False, help = "Designate reference genome for sample. Currently accepted values are hg19, hg38 and mm10.\nhg19 is broadly supported, the UDseq pipeline only supports hg38, and the SV pipeline only supports hg19.")
+parser.add_argument('--partition', default = "default", required = False, help = "Partition presets. Currently only 'petljak' is defined as an alernate. Set to 'petljak' to submit only to petljaklab partiton")
 
 script_args, unknown = parser.parse_known_args()
 

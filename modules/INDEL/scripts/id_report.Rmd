@@ -3,12 +3,16 @@ title: "Parent-Daughter Indel Filtering and QC Report"
 author: "Luka Culibrk"
 date: "2024-05-03"
 output: 
-    pdf_document
+    pdf_document:
+        toc: true
+        toc_depth: 3
+        keep_md: true
 params:
   args: ''
 header-includes:
   - \usepackage{hyperref}
   - \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+urlcolor: blue
 ---
 
 ```{r setup, echo=FALSE, include = FALSE}
@@ -645,14 +649,16 @@ Above is an example of an ID mutation signature. The first (orange and green) ca
 
 We begin by plotting out the different categories of variants to visualize their proportions across samples in the Maciejowski Lung collaboration study. The variants are separated into the following five groups:
 
-	i.   If the mutation has <15x coverage in parent, it is filtered and labeled accordingly
+	i.   If the mutation has <15x coverage in parent, it is filtered in the VCF and labeled 
+	accordingly in the barplot
 	ii.  If the mutation is present in >50% of all parents from that cell line, it is
-	filtered and labeled accordingly.
+	filtered in the VCF and labeled accordingly in the barplot.
 	iii. If the mutation is present in any daughter derived from a different parent,
-	it is	filtered and labeled accordingly.
+	it is	filtered in the VCF and labeled accordingly in the barplot.
 	iv.  If the mutation is present in other related daughters, it is **not**
-	filtered, but labeled
-	v.   Mutations private to the daughter are **not** filtered and labeled as unique. 
+	filtered (PASS in the VCF), but labeled in the VCF's LAB field and the barplot
+	v.   Mutations private to the daughter are **not** filtered (PASS in the VCF), and 
+	labeled as unique in the VCF's LAB field and the barplot. 
 	
 
 \newpage
@@ -715,13 +721,16 @@ long_label_wrap = stringr::str_wrap(long_label_descriptions, width = 20)
 
 ```
 
-```{r general_overview_plots, fig.height=8, fig.width=11, echo = FALSE, cache = TRUE}
+```{r general_overview_plots, fig.height=10, fig.width=8, echo = FALSE, cache = TRUE}
 for(c in unique(m2_dat$cell)){
 	genotypes = sort(unique(m2_dat[cell == c]$genotype))
-	for(geno in genotypes){
-			print(ggplot(m2_dat[cell == c][genotype == geno], aes(x = name, fill = tumor.LAB)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_fill_discrete(labels = long_label_wrap, name = "Mutation\nAnnotation") + ggtitle(paste0("Filtering of InDel mutations for cell line ", c, "\nCondition: ", geno)) + xlab("Sample") + ylab("Indel Count"))
-	}
+	plts = lapply(genotypes, function(geno){
+		ggplot(m2_dat[cell == c][genotype == geno], aes(x = name, fill = tumor.LAB)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + scale_fill_discrete(labels = long_label_wrap, name = "Mutation\nAnnotation") + ggtitle(paste0("Filtering of InDel mutations for cell line ", c, "\nCondition: ", geno)) + xlab("Sample") + ylab("Indel Count")
+	})
+	print(plot_grid(plotlist = plts, ncol = 1))
+	cat("\\pagebreak")
 }
+
 
 
 ```
@@ -736,14 +745,14 @@ As previously mentioned, we apply flags to mutations using information derived f
 In order to properly assess if a mutation is pre-existing, we require evidence that it is not present in the parental sample. 15x coverage is a common cutoff for this value, meaning that if a position has less than 15x coverage we do not have enough data to confidently assess a mutation's pre-existing or de novo status. 
 
 ### Present in >50% of parents
-Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in another parent from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The ID spectra of these mutations is clearly different from other categories, and based on this and and SBS data we assume these mutations to be pre-existing. 
+Sometimes a mutation can be pre-existing but not sequenced in the parent due to random chance. If the mutation was found in >50% of other parents from the same cell line, we consider that evidence of the mutation being either germline or pre-existing somatic. In practice this comprises a fairly small proportion of mutations overall - most parental mutations are either private to the parent, or shared in all parents. The ID spectra of these mutations is clearly different from other categories, and based on this and and SBS data we assume these mutations to be pre-existing. 
 
 ### Present in daughters from different parents
-If two daughters derived from different single-cell clones share the same mutations, it is very likely that the mutation is either due to technical noise (explaining why it was reproduced), it was a pre-existing somatic mutation (which should be removed), or it is a hotspot mutation (which should be rare and can be rescued at a later time). Visually it can be seen that the spectra of these mutations are different compared to private mutations.
+If two daughters derived from different single-cell clones share the same mutation, it is very likely that the mutation is either due to technical noise (explaining why it was reproduced), it was a pre-existing somatic mutation (which should be removed), or it is a hotspot mutation (which should be rare and can be rescued at a later time). Visually it can be seen that the spectra of these mutations are different compared to private mutations.
 
 
 ### Present in multiple daughters from the same parent
-This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - for example in a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first few cell divisions, it is increasingly unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. These mutations are true de novo mutations acquired in the experiment, and consequently they are retained in the final variant callset. 
+This category of mutations implies subclonal evolution, or early arising mutations during the cell culture experiment. In order for a mutation to be reliably detected in a bulk sequenced sample, it must have arisen within the first few cell divisions, because we are effectively sequencing the average $\frac{cov}{ploidy}$ cells in the sample - for example in a triploid cell line sequenced at 30x coverage, only an average of 10 cells are represented at any given locus. If a mutation occurred after the first few cell divisions, it is increasingly unlikely for that mutation to be identified in the parental sample. However, a significant proportion of the cells will still harbor the mutation, which could be found in multiple single-cell derived daughter clones. Because these mutations pass all other filtering, these mutations are true de novo mutations acquired in the experiment, and consequently they are retained in the final variant callset. We track these mutations in the case additional handling is desired - for example, four daughters harboring one such mutation would imply four independent mutation events while in reality this represents a single mutation that was propagated to four clones. 
 
 ### Unique mutations
 These mutations passed all of the above filters. They are high quality, private to each daughter, and were not found in any parents. They represent the mutations which we are most confident in. 
@@ -775,7 +784,7 @@ for(c in unique(m2_dat$cell)){
 
 ## Mutation profiles of all daughter clones
 
-```{r fig.height=10, fig.width=8, cache = FALSE, echo = FALSE}
+```{r fig.height=10, fig.width=8, cache = TRUE, echo = FALSE}
 ### Plot 20 per page
 plt_counter = 0
 pltlist = list()

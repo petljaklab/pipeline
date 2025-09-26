@@ -140,7 +140,6 @@ rule BWA:
         threads = ALIGN_THREADS,
         cpus = ALIGN_THREADS,
         mem_mb = 30000,
-        iotasks = 4,
         slurm_partition = config["clusters"][config["parts"]]["med"],
         tmpdisk = lambda wc, input: int(np.round(input.size_mb))
     log:
