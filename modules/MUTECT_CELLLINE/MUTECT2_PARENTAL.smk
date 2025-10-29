@@ -63,7 +63,7 @@ def all_daughter_calls_function(wildcards):
         ## id
         daught_id = daughter[0]
         ## Run gateway to ensure the analysis dir is created
-        gateway("MUTECT", petljakapi.translate.idtostring(daught_id, "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb", ref = wildcards.reference)
+        gateway("SBS", petljakapi.translate.idtostring(daught_id, "MPS"), SCRATCH_DIR, config["PROD_DIR"], db = "petljakdb", ref = wildcards.reference)
         ## Now we need the relevant analysis ID for the daughter sample
         analysis = petljakapi.select.multi_select(db = db, table = "analyses", filters = {"pipeline_name":"MUTECT_CELLLINE", "samples_id":daught_id, "reference_genome":wildcards.reference}, bench = config["bench"])
         p = analysis[0][10]
